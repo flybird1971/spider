@@ -1,0 +1,127 @@
+# datastruct python
+
+"""多行注释"""
+'''格式化定义字符串'''
+
+
+# 对象类型                      demo                                            operation
+
+   数字               123,3.14(浮点数)，4+4j(复数),Decimal,Fraction         +，-，*，/，**(乘方)   123L无范围值，可无限大，默认Python自动提升精度
+
+   字符串             'span'，"guido's",b"a\xolc"                          len(str)  分片str[offset:demiter]
+                        tips : 字符串序列，可以像索引数组一样操作
+                         eg  : str='abcde';
+                               print(str[0]);
+                               print(str[-1]);
+                               str[random.randint(0,4)+1];
+
+                         分片操作   : str[1:4]   str[:-1]   str[2:]
+                         字符串拼接 : str + 'subfix'
+                         字符串重复 : str*8
+                         字符串常用函数 ：
+                                    str.find(subStr)  查找到就停止查找，返回字符串所在位置索引,为查找到返回-1
+                                    str.replace(findStr,replaceStr) 全局替换，返回替换后的字符串
+                                    str.split(char) 分割字符串为列表,类似php
+                                    str.uppder()   转为大写
+                                    str.lower()    转为小写
+                                    str.rstrip()   类似php rtrim()    str.lstrip()  str.strip()
+                                    str.isalpha()  字符串是否只有字母组成
+                                    str.isalnum()  字符串是否是由字符或者数字组成
+                         字符串格式化 :
+                                    '%s eggs,and %s' % ('first','seconds')
+                                    '{0},eggs,and {1}'.format('first','seconds)
+
+                         字符串对象方法，可以dir(str) & help(str.replace) 查看详情
+                         ['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__',
+                          '__format__', '__ge__', '__getattribute__', '__getitem__', '__getnewargs__',
+                          '__getslice__', '__gt__', '__hash__', '__init__', '__le__', '__len__', '__lt__',
+                          '__mod__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__',
+                          '__rmod__', '__rmul__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__',
+                          '_formatter_field_name_split', '_formatter_parser', 'capitalize', 'center', 'count',
+                          'decode', 'encode', 'endswith', 'expandtabs', 'find', 'format', 'index', 'isalnum',
+                          'isalpha', 'isdigit', 'islower', 'isspace', 'istitle', 'isupper', 'join', 'ljust',
+                          'lower', 'lstrip', 'partition', 'replace', 'rfind', 'rindex', 'rjust', 'rpartition',
+                          'rsplit', 'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase', 'title', 'translate', 'upper', 'zfill']
+
+                        字符串定义 ： str="""aaaa\
+                                           ccccccccc\
+                                           ddddddddd
+                                           ffffffffff"""
+                        字符串匹配 ： match = re.match(pattern,str)  类似正则，详见手册
+
+
+
+
+
+   列表               [1,[2,'them'],4]
+                    列表，有序序列,类似php数组，比数组强大,  支持序列操作eg: L[0] 索引， L[:-2]分片， L+[1,'222','333']追加等
+
+
+                    ['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__delslice__',
+                     '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getslice__',
+                     '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__',
+                     '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__',
+                     '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__str__', '__subclasshook__',
+
+                     'append','count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+
+
+
+   字典               {'food':'spand','name':'ms li'}
+   元组               (1,'span',5,'u')
+   文件               fHander = open('filename','rb')
+   集合               set('abc'),{'a','b','c'}
+   其他类型            None,类型，布尔型
+   编程单元类型        函数，模块，类
+   与实现相关的类型     编译的代码堆栈跟踪
+
+   ps : 数字，字符串，元组为不可变类型
+
+# 内置模块
+  math      数学工具    math.pi  math.log  math.sqrt  math.pow  可以import math; dir(math)&help(math);查看详情
+  random    随机模块    random.random()  random.choice([1,2,3,4])
+  re        正则模块
+  os        python与系统交互模块
+                os.getcwd()  获取当前所在目录
+                os.chdir(param) 切换目录
+                os.system(cmd)  执行系统shell命令
+  shutil    python处理文件高级接口
+                 shutil.copyfile('data.db', 'archive.db')
+                 shutil.move('/build/executables', 'installdir')
+
+
+
+['DEBUG', 'DOTALL', 'I', 'IGNORECASE', 'L', 'LOCALE', 'M',
+'MULTILINE', 'S', 'Scanner', 'T', 'TEMPLATE', 'U', 'UNICODE',
+'VERBOSE', 'X', '_MAXCACHE', '__all__', '__builtins__',
+'__doc__', '__file__', '__name__', '__package__', '__version__',
+'_alphanum', '_cache', '_cache_repl', '_compile', '_compile_repl',
+'_expand', '_locale', '_pattern_type', '_pickle', '_subx', 'compile',
+'copy_reg', 'error', 'escape', 'findall', 'finditer', 'match', 'purge',
+'search', 'split', 'sre_compile', 'sre_parse', 'sub', 'subn', 'sys', 'template']
+
+
+python与os交换
+    import os
+    os.getcwd()  获取当前所在目录
+    os.chdir(param) 切换目录
+    os.system(cmd)  执行系统shell命令
+
+    ['F_OK', 'O_APPEND', 'O_BINARY', 'O_CREAT', 'O_EXCL', 'O_NOINHERIT',
+    'O_RANDOM', 'O_RDONLY', 'O_RDWR', 'O_SEQUENTIAL', 'O_SHORT_LIVED',
+    'O_TEMPORARY', 'O_TEXT', 'O_TRUNC', 'O_WRONLY', 'P_DETACH', 'P_NOWAIT',
+    'P_NOWAITO', 'P_OVERLAY', 'P_WAIT', 'R_OK', 'SEEK_CUR', 'SEEK_END',
+    'SEEK_SET', 'TMP_MAX', 'UserDict', 'W_OK', 'X_OK', '_Environ', '__all__',
+    '__builtins__', '__doc__', '__file__', '__name__', '__package__', '_copy_reg',
+    '_execvpe', '_exists', '_exit', '_get_exports_list', '_make_stat_result',
+    '_make_statvfs_result', '_pickle_stat_result', '_pickle_statvfs_result',
+    'abort', 'access', 'altsep', 'chdir', 'chmod', 'close', 'closerange',
+    'curdir', 'defpath', 'devnull', 'dup', 'dup2', 'environ', 'errno', 'error',
+    'execl', 'execle', 'execlp', 'execlpe', 'execv', 'execve', 'execvp', 'execvpe',
+     'extsep', 'fdopen', 'fstat', 'fsync', 'getcwd', 'getcwdu', 'getenv', 'getpid',
+     'isatty', 'kill', 'linesep', 'listdir', 'lseek', 'lstat', 'makedirs', 'mkdir',
+     'name', 'open', 'pardir', 'path', 'pathsep', 'pipe', 'popen', 'popen2', 'popen3',
+     'popen4', 'putenv', 'read', 'remove', 'removedirs', 'rename', 'renames', 'rmdir',
+     'sep', 'spawnl', 'spawnle', 'spawnv', 'spawnve', 'startfile', 'stat', 'stat_float_times',
+     'stat_result', 'statvfs_result', 'strerror', 'sys', 'system', 'tempnam', 'times','tmpfile',
+     'tmpnam', 'umask', 'unlink', 'unsetenv', 'urandom', 'utime', 'waitpid', 'walk', 'write']

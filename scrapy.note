@@ -1,0 +1,27 @@
+
+scrapy version 查看scrapy版本
+scrapy version -v 查看scrapy依赖模块的详细版本及系统平台
+
+生成新项目    scrapy startproject <projectName>
+生成spider    scrapy genspider [-t template] <name> <domain>
+
+scrapy list          列出所有spider
+scrapy view  <url>   使用scrapy下载器下载，并在浏览器中显示，可以用于查看下载数据与浏览器访问数据异同
+scrapy parse <url>   调用工程中对应url的parse 函数解析，
+scrapy fetch <url>   使用scrapy下载器下载指定url，并将获得内容送到标准输出
+
+scrapy shell     启动scrapy shell界面，命令行模式调试xpath  css等过滤条件
+scrapy crawl <spiderName>  运行spider
+
+scrapy runspider python.py
+scrapy bench 爬虫能力测试
+
+
+
+
+
+运行contract检查 scrapy check
+
+
+
+
