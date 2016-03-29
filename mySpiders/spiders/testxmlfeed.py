@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import XMLFeedSpider
-from spiders.items import XmlFeedItem
+from mySpiders.items import XmlFeedItem
 import re
 
 class TestxmlfeedSpider(XMLFeedSpider):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import CSVFeedSpider
 
-from spiders.items import SpidersItem
+from mySpiders.items import MyspidersItem
 
 
 class TestcsvfeedSpider(CSVFeedSpider):
@@ -16,7 +16,7 @@ class TestcsvfeedSpider(CSVFeedSpider):
     #    return response
 
     def parse_row(self, response, row):
-        i = SpidersItem()
+        i = MyspidersItem()
         #i['url'] = row['url']
         #i['name'] = row['name']
         #i['description'] = row['description']

@@ -4,7 +4,7 @@
 from scrapy.spiders import Spider
 from scrapy.http import Request
 from scrapy.selector import Selector
-from spiders.items import CSDNItem
+from mySpiders.items import CSDNItem
 
 class CSDNSpider(Spider):
 

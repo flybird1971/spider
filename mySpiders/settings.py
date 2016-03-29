@@ -9,10 +9,10 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'spiders'
+BOT_NAME = 'mySpiders'
 
-SPIDER_MODULES = ['spiders.spiders']
-NEWSPIDER_MODULE = 'spiders.spiders'
+SPIDER_MODULES = ['mySpiders.spiders']
+NEWSPIDER_MODULE = 'mySpiders.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -52,7 +52,7 @@ NEWSPIDER_MODULE = 'spiders.spiders'
 DOWNLOADER_MIDDLEWARES = {
     # 'spiders.middlewares.MyCustomDownloaderMiddleware': 543,
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': None,
-    'spiders.contrib.downloadmiddleware.rotate_useragent.RotateUserAgentMiddleware': 400,
+    'mySpiders.contrib.downloadmiddleware.rotate_useragent.RotateUserAgentMiddleware': 400,
 }
 
 # Enable or disable extensions
@@ -64,10 +64,10 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'spiders.pipelines.XmlFeedPipeline': 10,
-    # 'spiders.pipelines.BsbdjPipeline' : 100,
-    # 'spiders.pipelines.CSDNPipeline': 300,
-    # 'spiders.pipelines.SomePipeline': 300,
+    'mySpiders.pipelines.XmlFeedPipeline': 10,
+    # 'mySpiders.pipelines.BsbdjPipeline' : 100,
+    # 'mySpiders.pipelines.CSDNPipeline': 300,
+    # 'mySpiders.pipelines.SomePipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

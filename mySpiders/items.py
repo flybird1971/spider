@@ -12,7 +12,7 @@ class BsbdjItem(Item):
     name = Field()
     url = Field()
 
-class SpidersItem(Item):
+class MyspidersItem(Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass

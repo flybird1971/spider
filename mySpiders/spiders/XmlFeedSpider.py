@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from scrapy.spiders import XMLFeedSpider
-from spiders.items import XmlFeedItem
+from mySpiders.items import XmlFeedItem
 import re
 import time
 
 class XmlFeedSpider(XMLFeedSpider):
     
-    name = 'testxmlfeed'
+    name = 'CommonXmlFeed'
 
     # allowed_domains = ['zhihu.com']
 
@@ -31,6 +31,7 @@ class XmlFeedSpider(XMLFeedSpider):
     def __init__(self,*arg,**argdict):
         self.initConfig(*arg,**argdict)
         XMLFeedSpider.__init__(*arg,**argdict)
+        self.currentNode = None
 
     def initConfig(self,*arg,**argdict):
         XmlFeedSpider.start_urls = argdict.get('start_urls','')
@@ -47,28 +48,23 @@ class XmlFeedSpider(XMLFeedSpider):
         XmlFeedSpider.rule_id = argdict.get('rule_id','')
         pass
 
-    def safeParse(self,sel,xpathPattern):
+    def safeParse(self,xpathPattern):
         """safe about extract datas"""
         if not xpathPattern:
             return []
 
-        return sel.xpath(xpathPattern).extract()
+        return self.currentNode.xpath(xpathPattern).extract()
 
 
     def parse_node(self, response, node):
 
         item = XmlFeedItem()
+        self.currentNode = node
         item['title'] = [ t.encode('utf-8') for t in self.safeParse(self.titleXpath) ]
-        # item['link'] =  [ l.encode('utf-8') for l in self.safeParse(self.linkXpath) ]
-        
-        item['img_url'] = []
-        item['description'] = []
 
-        txtList = [ d.encode('utf-8') for d in self.safeParse(self.descriptionXpath) ]
-        for txt in txtList:
-            extendInfo = self.parse_description(txt)
-            item['img_url'].append(extendInfo['img_url'])
-            item['description'].append(extendInfo['description'])
+        imageAndDescriptionInfos = self.parseDescriptionAndImages()
+        item['img_url'] = imageAndDescriptionInfos['img_url']
+        item['description'] = imageAndDescriptionInfos['description']
 
         item['public_time'] = [ p.encode('utf-8') for p in self.safeParse(self.pubDateXpath) ]
         item['source_url'] = [ g.encode('utf-8') for g in self.safeParse(self.guidXpath) ]
@@ -77,7 +73,40 @@ class XmlFeedSpider(XMLFeedSpider):
         yield item
 
 
-    def parse_description(self,text):
+    def parseDescriptionAndImages(self):
+        if not self.imgUrlXpath:
+            imgUrlList = descriptionlist = []
+            txtList = [ d.encode('utf-8') for d in self.safeParse(self.descriptionXpath) ]
+            for txt in txtList:
+                extendInfo = self.__parseDescriptionAndImg(txt)
+                imgUrlList.append(extendInfo['img_url'])
+                descriptionlist.append(extendInfo['description'])
+        else:
+            txtList = [ d.encode('utf-8') for d in self.safeParse(self.descriptionXpath) ]
+            for txt in txtList:
+                descriptionInfos = self.__parseDescriptionOnly(txt)
+                descriptionlist.append(descriptionInfos)
+            imgUrlList = [ d.encode('utf-8') for d in self.safeParse(self.imgUrlXpath) ]
+        
+        return {"img_url":imgUrlList,"description":descriptionlist}
+        
+
+
+    def __parseDescriptionOnly(self,text):
+        """当img_node存在是，调用此方法获取description"""
+
+        if not text: return ""
+
+        txt = self.text_pattern.sub('',text)
+        if not txt: return text
+
+        if self.descriptionLenght > 0:
+            txt = txt.decode('utf8')[0:self.descriptionLenght].encode('utf8')
+
+        return txt
+
+    def __parseDescriptionAndImg(self,text):
+        """当img_node不存在是，调用此方法获取description 和 img_url数据"""
 
         extendItem = {'img_url':'','description':''}
         if not text: return extendItem

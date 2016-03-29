@@ -3,7 +3,7 @@
 
 from scrapy.spiders import Spider
 from scrapy.http import Request
-from spiders.items import BsbdjItem
+from mySpiders.items import BsbdjItem
 import re
 
 

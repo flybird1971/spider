@@ -106,6 +106,8 @@ class HttpRequest(object):
             i+=1
         return base64.b64encode(strs);
 
+__all__ = ['HttpRequest']
+
 if __name__ == '__main__':
 
     http = HttpRequest()
