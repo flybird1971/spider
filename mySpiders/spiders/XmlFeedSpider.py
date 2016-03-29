@@ -38,8 +38,9 @@ class XmlFeedSpider(XMLFeedSpider):
         self.currentNode = None
 
     def initConfig(self):
-
+        print "-------begin---runSpider-----"
         spiderConfig = self.getSpiderConfig()
+        print "-----begin---runSpider-----"
         XmlFeedSpider.start_urls = spiderConfig.get('start_urls', '')
         XmlFeedSpider.itertag = spiderConfig.get('itertag', '')
         XmlFeedSpider.titleXpath = spiderConfig.get('title_node', '')

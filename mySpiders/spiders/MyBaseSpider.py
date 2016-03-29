@@ -5,11 +5,11 @@ from scrapy.spiders import XMLFeedSpider
 # from mySpiders.items import XmlFeedItem
 import re
 
-class MyBaseSpider(object):
-    """docstring for MyBaseSpider"""
-    def __init__(self, arg):
-        super(MyBaseSpider, self).__init__()
-        self.arg = arg
+# class MyBaseSpider(object):
+#     """docstring for MyBaseSpider"""
+#     def __init__(self, arg):
+#         super(MyBaseSpider, self).__init__()
+#         self.arg = arg
         
 
 

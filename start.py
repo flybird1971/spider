@@ -6,7 +6,7 @@ import scrapy
 
 from mySpiders.utils.httpRequest import HttpRequest
 from scrapy.crawler import CrawlerProcess
-from gevent.pool import Pool
+from gevent.pool import Pool,Group
 from mySpiders.spiders.XmlFeedSpider import XmlFeedSpider
 
 SLEEP_TIMES = 60
@@ -20,14 +20,14 @@ class SpiderPool(object):
             size = MAX_POOL_NUM
 
         self.pool = Pool(size)
-        self.pool.start()
+        # self.pool.start([])
 
     def runSpider(self):
-        process = CrawlerProcess({
-            'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-        })
+        print "begin---runSpider-----"
+        process = CrawlerProcess()
         process.crawl(XmlFeedSpider)
         process.start()
+        print "end---runSpider-----"
         pass
 
     def add_handler(self):
@@ -56,9 +56,10 @@ class RunSpider(object):
         while True:
             try:
                 self.pool.add_handler()
+                self.pool.pool.join()
                 # self.pool.add_handler(self.configArg)
             except Exception, e:
-                print e
+                print "-----------------"
                 time.sleep(self.sleepTimes)
                 continue
             break
