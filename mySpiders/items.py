@@ -5,21 +5,24 @@
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/items.html
 
-from scrapy.item import Item,Field
+from scrapy.item import Item, Field
 
 
 class BsbdjItem(Item):
     name = Field()
     url = Field()
 
+
 class MyspidersItem(Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
 
+
 class CSDNItem(Item):
     name = Field()
     url = Field()
+
 
 class DemoItem(Item):
     title = Field()
@@ -34,6 +37,7 @@ class StackOverflowItem(Item):
     body = Field()
     href = Field()
     pass
+
 
 class XmlFeedItem(Item):
     source_url = Field()
