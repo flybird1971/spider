@@ -20,22 +20,32 @@ class XmlFeedSpider(XMLFeedSpider):
     start_urls = []
     iterator = 'iternodes'  # you can change this; see the docs
     itertag = 'channel'  # change it accordingly
-    titleXpath = ''
-    descriptionXpath = ''
-    descriptionLenght = 0
-    linkXpath = ''
-    imgUrlXpath = ''
-    imageNum = 1
-    videoUrlXpath = ''
-    pubDateXpath = ''
-    guidXpath = ''
-    rule_id = ''
+    # titleXpath = ''
+    # descriptionXpath = ''
+    # descriptionLenght = 0
+    # linkXpath = ''
+    # imgUrlXpath = ''
+    # imageNum = 1
+    # videoUrlXpath = ''
+    # pubDateXpath = ''
+    # guidXpath = ''
+    # rule_id = ''
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
-        self.num = 0
+
+        titleXpath = ''
+        descriptionXpath = ''
+        descriptionLenght = 0
+        linkXpath = ''
+        imgUrlXpath = ''
+        imageNum = 1
+        videoUrlXpath = ''
+        pubDateXpath = ''
+        guidXpath = ''
+        rule_id = ''
         self.initConfig(argdict)
         XMLFeedSpider.__init__(self, *arg, **argdict)
         self.currentNode = None
@@ -45,23 +55,23 @@ class XmlFeedSpider(XMLFeedSpider):
         # spiderConfig = self.getSpiderConfig()
         XmlFeedSpider.start_urls = spiderConfig.get('start_urls', '')
         XmlFeedSpider.itertag = spiderConfig.get('itertag', '')
-        XmlFeedSpider.titleXpath = spiderConfig.get('title_node', '')
-        XmlFeedSpider.descriptionXpath = spiderConfig.get('description_node', '')
-        XmlFeedSpider.descriptionLenght = int(spiderConfig.get('description_length', 1))
-        if XmlFeedSpider.descriptionLenght < 1:
-            XmlFeedSpider.descriptionLenght = 1
+        self.titleXpath = spiderConfig.get('title_node', '')
+        self.descriptionXpath = spiderConfig.get('description_node', '')
+        self.descriptionLenght = int(spiderConfig.get('description_length', 1))
+        if self.descriptionLenght < 1:
+            self.descriptionLenght = 1
 
-        XmlFeedSpider.linkXpath = spiderConfig.get('guid_node', '')
-        XmlFeedSpider.imgUrlXpath = spiderConfig.get('img_node', '')
-        XmlFeedSpider.imageNum = int(spiderConfig.get('img_num', 1))
-        if XmlFeedSpider.imageNum < 1:
-            XmlFeedSpider.imageNum = 1
+        self.linkXpath = spiderConfig.get('guid_node', '')
+        self.imgUrlXpath = spiderConfig.get('img_node', '')
+        self.imageNum = int(spiderConfig.get('img_num', 1))
+        if self.imageNum < 1:
+            self.imageNum = 1
 
-        XmlFeedSpider.videoUrlXpath = spiderConfig.get('video_node', '')
-        XmlFeedSpider.pubDateXpath = spiderConfig.get('public_time', '')
-        XmlFeedSpider.guidXpath = spiderConfig.get('guid_node', '')
-        logging.info("--------guid_node---%s---------------" % XmlFeedSpider.guidXpath)
-        XmlFeedSpider.rule_id = spiderConfig.get('id', '')
+        self.videoUrlXpath = spiderConfig.get('video_node', '')
+        self.pubDateXpath = spiderConfig.get('public_time', '')
+        self.guidXpath = spiderConfig.get('guid_node', '')
+        # logging.info("--------guid_node---%s---------------" % self.guidXpath)
+        self.rule_id = spiderConfig.get('id', '')
         pass
 
     def safeParse(self, xpathPattern):

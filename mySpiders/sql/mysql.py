@@ -110,7 +110,8 @@ class Mysql(BaseMysql):
 
         res = []
         for i in data:
-            res.append(str(i))
+            res.append(i)
+            # res.append(str(i))
         # res = "'" +  "','".join(res).strip(',') + "'"
         return res
 
