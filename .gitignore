@@ -64,3 +64,4 @@ target/
 *.json
 *.log
 *.txt
+log.insert.sql

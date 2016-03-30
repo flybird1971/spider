@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from mySpiders.sqlPDO.mysqlTest import Mysql 
+from mySpiders.sql.mysql import Mysql 
 
 # config = {'host':'127.0.0.1','user':'root','passwd':'123456'}
 # database = 'babel'

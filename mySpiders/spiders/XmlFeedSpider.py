@@ -2,11 +2,13 @@
 import re
 import time
 import json
+import logging
+from scrapy.http import Request
 from scrapy.spiders import XMLFeedSpider
 from mySpiders.items import XmlFeedItem
 from mySpiders.utils.httpRequest import HttpRequest
 
-SLEEP_TIMES = 60
+SLEEP_TIMES = 6
 
 
 class XmlFeedSpider(XMLFeedSpider):
@@ -33,14 +35,14 @@ class XmlFeedSpider(XMLFeedSpider):
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
-        self.initConfig()
+        self.num = 0
+        self.initConfig(argdict)
         XMLFeedSpider.__init__(self, *arg, **argdict)
         self.currentNode = None
 
-    def initConfig(self):
-        print "-------begin---runSpider-----"
-        spiderConfig = self.getSpiderConfig()
-        print "-----begin---runSpider-----"
+    def initConfig(self,spiderConfig):
+
+        # spiderConfig = self.getSpiderConfig()
         XmlFeedSpider.start_urls = spiderConfig.get('start_urls', '')
         XmlFeedSpider.itertag = spiderConfig.get('itertag', '')
         XmlFeedSpider.titleXpath = spiderConfig.get('title_node', '')
@@ -58,36 +60,9 @@ class XmlFeedSpider(XMLFeedSpider):
         XmlFeedSpider.videoUrlXpath = spiderConfig.get('video_node', '')
         XmlFeedSpider.pubDateXpath = spiderConfig.get('public_time', '')
         XmlFeedSpider.guidXpath = spiderConfig.get('guid_node', '')
+        logging.info("--------guid_node---%s---------------" % XmlFeedSpider.guidXpath)
         XmlFeedSpider.rule_id = spiderConfig.get('id', '')
         pass
-
-    def getCrawlRequest(self):
-        try:
-            http = HttpRequest()
-            url = 'http://www.babel.com/api/get-spider-rules/get'
-            body = {'action': 'get', 'version': '1.1'}
-            encryptFields = ['action', 'version']
-            res = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
-            res = json.loads(res)['data']
-            if res == 'null':
-                res = None
-        except Exception, e:
-            print e
-            return None
-        finally:
-            pass
-        return res
-
-    def getSpiderConfig(self):
-        """获取爬虫配置项，若果redis为空，则休眠60s"""
-        while True:
-            spiderConfig = self.getCrawlRequest()
-            if spiderConfig:
-                break
-            # log
-            time.sleep(SLEEP_TIMES)
-
-        return spiderConfig
 
     def safeParse(self, xpathPattern):
         """safe about extract datas"""
@@ -95,6 +70,14 @@ class XmlFeedSpider(XMLFeedSpider):
             return []
 
         return self.currentNode.xpath(xpathPattern).extract()
+
+    # def parse_node(self, response, node):
+        # self.get_next_request()
+
+    # def get_next_request(self):
+    #     spiderConfig = self.getSpiderConfig()
+    #     url = spiderConfig.get('start_urls', '')
+    #     yield Request(url, meta={'spiderConfig': spiderConfig}, callback=self.parse_next)
 
     def parse_node(self, response, node):
 
@@ -109,12 +92,13 @@ class XmlFeedSpider(XMLFeedSpider):
         item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
         item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
         item['rule_id'] = self.rule_id
-        item['create_time'] = time.time()
         yield item
 
     def parseDescriptionAndImages(self):
         if not self.imgUrlXpath:
-            imgUrlList = descriptionlist = []
+            imgUrlList = []
+            descriptionlist = []
+            txtList = self.safeParse(self.descriptionXpath)
             txtList = [d.encode('utf-8') for d in self.safeParse(self.descriptionXpath)]
             for txt in txtList:
                 extendInfo = self.__parseDescriptionAndImg(txt)
@@ -161,5 +145,4 @@ class XmlFeedSpider(XMLFeedSpider):
 
         if self.descriptionLenght > 0:
             extendItem['description'] = txt.decode('utf8')[0:self.descriptionLenght].encode('utf8')
-
         return extendItem

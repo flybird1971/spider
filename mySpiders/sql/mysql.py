@@ -55,14 +55,15 @@ class Mysql(BaseMysql):
 
     def __connect(self):
         """connect mysql db"""
-        self.connect = mdb.connect(host=self.host,user=self.user,passwd=self.passwd) #建立连接
+        self.connect = mdb.connect(host=self.host,user=self.user,passwd=self.passwd,charset='utf8') #建立连接
         self.connect.select_db(self.database) #选择数据库
 
         #创建游标
         if self.isDict :
             self.cur = self.connect.cursor(mdb.cursors.DictCursor)
         else:    
-            Mysql.cur = Mysql.connect.cursor() 
+            self.cur = self.connect.cursor() 
+        self.cur.execute("SET NAMES utf8")
         
     def setDictCur(self,isDict=True):
         self.isDict = isDict
