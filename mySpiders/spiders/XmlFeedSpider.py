@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import re
-import time
-import json
 import logging
 from scrapy.http import Request
 from scrapy.spiders import XMLFeedSpider
 from mySpiders.items import XmlFeedItem
-from mySpiders.utils.httpRequest import HttpRequest
 
 SLEEP_TIMES = 6
 
@@ -20,34 +17,25 @@ class XmlFeedSpider(XMLFeedSpider):
     start_urls = []
     iterator = 'iternodes'  # you can change this; see the docs
     itertag = 'channel'  # change it accordingly
-    # titleXpath = ''
-    # descriptionXpath = ''
-    # descriptionLenght = 0
-    # linkXpath = ''
-    # imgUrlXpath = ''
-    # imageNum = 1
-    # videoUrlXpath = ''
-    # pubDateXpath = ''
-    # guidXpath = ''
-    # rule_id = ''
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
 
-        titleXpath = ''
-        descriptionXpath = ''
-        descriptionLenght = 0
-        linkXpath = ''
-        imgUrlXpath = ''
-        imageNum = 1
-        videoUrlXpath = ''
-        pubDateXpath = ''
-        guidXpath = ''
-        rule_id = ''
+        self.titleXpath = ''
+        self.descriptionXpath = ''
+        self.descriptionLenght = 0
+        self.linkXpath = ''
+        self.imgUrlXpath = ''
+        self.imageNum = 1
+        self.videoUrlXpath = ''
+        self.pubDateXpath = ''
+        self.guidXpath = ''
+        self.rule_id = ''
+        self.is_remove_namespaces = False
         self.initConfig(argdict)
-        XMLFeedSpider.__init__(self, *arg, **argdict)
+        XMLFeedSpider.__init__(self, *arg)
         self.currentNode = None
 
     def initConfig(self,spiderConfig):
@@ -72,6 +60,7 @@ class XmlFeedSpider(XMLFeedSpider):
         self.guidXpath = spiderConfig.get('guid_node', '')
         # logging.info("--------guid_node---%s---------------" % self.guidXpath)
         self.rule_id = spiderConfig.get('id', '')
+        self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
         pass
 
     def safeParse(self, xpathPattern):
@@ -90,6 +79,10 @@ class XmlFeedSpider(XMLFeedSpider):
     #     yield Request(url, meta={'spiderConfig': spiderConfig}, callback=self.parse_next)
 
     def parse_node(self, response, node):
+        
+        if self.is_remove_namespaces == '1':
+            logging.info("***************%s****************" % self.is_remove_namespaces)
+            response.selector.remove_namespaces()
 
         item = XmlFeedItem()
         self.currentNode = node

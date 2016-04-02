@@ -11,6 +11,7 @@ import time
 import logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.mysql import Mysql
+from mySpiders.utils.RequstDistinct import requstDistinct
 
 
 class SpidersPipeline(object):
@@ -54,6 +55,11 @@ class XmlFeedPipeline(object):
         public_time = int(time.time())
         create_time = int(time.time())
         for index,title in enumerate(item['title']):
+            uniqueCode = toMd5(item['source_url'][index])
+            if not requstDistinct(uniqueCode) :
+                logging.info("-----------%s----has exists----------" % item['source_url'][index])
+                continue
+
             if item['img_url'][index]:
                 img_url = json.dumps(item['img_url'][index])
             else:
@@ -63,7 +69,7 @@ class XmlFeedPipeline(object):
 
             insertData = {
                 'source_url'  : item['source_url'][index],
-                'unique_code' : toMd5(item['source_url'][index]),
+                'unique_code' : uniqueCode,
                 'rule_id'     : rule_id,                
                 'title'       : title,      
                 'description' : item['description'][index],

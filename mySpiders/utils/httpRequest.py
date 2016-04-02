@@ -15,9 +15,13 @@ ENCRYPT_MD5_KEY   =   '9b4fc52bc7208cd618195abee8d57ad6'
 
 class HttpRequest(object):
 
+    action = 'get'
+    version = '1.1'
+
     def __init__(self, url='', requestType='post'):
         self.url = url
         self.type = requestType
+        self.body = {}
 
     def setUrl(self, url):
         self.url = url
@@ -35,6 +39,8 @@ class HttpRequest(object):
 
     def setBody(self, body):
         self.body = body
+        # self.body['action'] = HttpRequest.action
+        # self.body['version'] = HttpRequest.version
         return self
 
     def getBody(self):
@@ -79,7 +85,11 @@ class HttpRequest(object):
     def getDate(self):
         return datetime.datetime.now().strftime('%Y-%m-%d')
 
-    def encrypt(self,encryptFields):
+    def encrypt(self,encryptFields=[]):
+        self.body['action'] = HttpRequest.action
+        self.body['version'] = HttpRequest.version
+        encryptFields.append('action')
+        encryptFields.append('version')
         md5KeyPrefix = self.toMd5(self.getDate())[3:10];
         md5KeySubfix = self.toMd5(self.getDate())[12:25];
         self.md5Key = self.toMd5(md5KeyPrefix+ENCRYPT_MD5_KEY+md5KeySubfix);
@@ -111,8 +121,8 @@ __all__ = ['HttpRequest']
 if __name__ == '__main__':
 
     http = HttpRequest()
-    url = 'http://www.babel.com/api/get-spider-rules/get'
-    body = {'action': 'get', 'version': '1.1'}
-    encryptFields = ['action', 'version']
+    url = 'http://www.babel.com/api/cluster-requst-distinct/index'
+    body = {'field':'abcdefgbe'}
+    encryptFields = ['field']
     res = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
     print json.loads(res)['data']

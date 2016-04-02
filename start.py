@@ -11,7 +11,7 @@ from scrapy.conf import settings
 
 
 SLEEP_TIMES = 6
-MAX_POOL_NUM = 15
+MAX_POOL_NUM = 1
 
 
 class RunSpider(object):
@@ -47,7 +47,7 @@ class RunSpider(object):
             # logging.info("-----spiderConfig-----%s " % self.spiderConfig)
             if not self.spiderConfig:
                 if self.runNum < 1:
-                    logging.info("-----sleep %s seconds---- " % SLEEP_TIMES)
+                    logging.info("-----sleep %s seconds--spiderNUM %s-- " % (SLEEP_TIMES,self.runNum))
                     time.sleep(SLEEP_TIMES)
                     continue
                 self.runSpider()
@@ -62,18 +62,17 @@ class RunSpider(object):
         try:
             http = HttpRequest()
             url = 'http://www.babel.com/api/get-spider-rules/get'
-            body = {'action': 'get', 'version': '1.1'}
-            encryptFields = ['action', 'version']
-            res = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
-            res = json.loads(res)['data']
-            # logging.info("-----%s-----" % res)
+            # res = http.setUrl(url).encrypt().post()
+            # res = json.loads(res)['data']
+            response = http.setUrl(url).setBody({}).encrypt([]).post()
+            res = json.loads(response)['data']
+
+            logging.info("-----test----%s----- " % res)
             if res == 'null':
                 res = None
         except Exception, e:
             logging.info("-----%s-----" % e)
             return None
-        finally:
-            pass
         return res
 
 
@@ -88,3 +87,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
