@@ -1,5 +1,6 @@
 #coding:utf8
 import MySQLdb as mdb
+import logging
 # import sys
 # sys.path.append("../")
 __author__ = 'flybird1971'
@@ -227,8 +228,12 @@ class Mysql(BaseMysql):
         if not self.connect:
             self.connect.close()
 
-    def __del__(self):  
-        self.close()
-
+    # def __del__(self): 
+    #     try:
+    #         if self:
+    #             self.close()
+    #     except Exception, e:
+    #         logging.info("------------%s-------" % e)
+        
 
 __all__ = ['Mysql']

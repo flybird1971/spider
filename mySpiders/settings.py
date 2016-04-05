@@ -30,7 +30,7 @@ NEWSPIDER_MODULE = 'mySpiders.spiders'
 # CONCURRENT_REQUESTS_PER_IP=16
 
 # Disable cookies (enabled by default)
-# COOKIES_ENABLED=False
+COOKIES_ENABLED=False
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED=False
@@ -44,8 +44,12 @@ NEWSPIDER_MODULE = 'mySpiders.spiders'
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 # SPIDER_MIDDLEWARES = {
-#    'spiders.middlewares.MyCustomSpiderMiddleware': 543,
-#}
+   # 'spiders.middlewares.MyCustomSpiderMiddleware': 543,
+# }
+
+SCHEDULER_MIDDLEWARES_BASE = {
+    'scrapy.contrib.schedulermiddleware.duplicatesfilter.DuplicatesFilterMiddleware': None,
+}
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html

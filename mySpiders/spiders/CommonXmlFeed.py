@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 import re
 import logging
+import time
+# import scrapy
+# import json
 from scrapy.http import Request
-from scrapy.spiders import XMLFeedSpider
+# from scrapy.spiders import XMLFeedSpider
+from scrapy.spiders import Spider
 from mySpiders.items import XmlFeedItem
+# from mySpiders.utils.httpRequest import HttpRequest
+from mySpiders.utils.http import getCrawlRequest
 
 SLEEP_TIMES = 6
+MAX_RUN_NUM = 2
 
 
-class XmlFeedSpider(XMLFeedSpider):
+class XmlFeedSpider(Spider):
 
-    name = 'CommonXmlFeed'
+    name = 'CommonXmlFeedEx'
+
+    itertag = None
 
     # allowed_domains = ['zhihu.com']
 
     start_urls = []
-    iterator = 'iternodes'  # you can change this; see the docs
-    itertag = 'channel'  # change it accordingly
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
-        logging.info('---------------------%s--------------' % dir(self))
 
         self.titleXpath = ''
         self.descriptionXpath = ''
@@ -35,14 +41,11 @@ class XmlFeedSpider(XMLFeedSpider):
         self.guidXpath = ''
         self.rule_id = ''
         self.is_remove_namespaces = False
-        self.initConfig(argdict)
-        XMLFeedSpider.__init__(self, *arg)
+        Spider.__init__(self, *arg,**argdict)
         self.currentNode = None
 
     def initConfig(self,spiderConfig):
 
-        # spiderConfig = self.getSpiderConfig()
-        XmlFeedSpider.start_urls = spiderConfig.get('start_urls', '')
         XmlFeedSpider.itertag = spiderConfig.get('itertag', '')
         self.titleXpath = spiderConfig.get('title_node', '')
         self.descriptionXpath = spiderConfig.get('description_node', '')
@@ -64,6 +67,20 @@ class XmlFeedSpider(XMLFeedSpider):
         self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
         pass
 
+    def start_requests(self):
+        requestUrl = []
+        for i in xrange(0,MAX_RUN_NUM):
+            spiderConfig = getCrawlRequest()
+            if not spiderConfig:
+                break
+
+            requestUrl.append(Request(spiderConfig.get('start_urls', '')[0],
+                                   meta={'spiderConfig':spiderConfig},
+                                   callback=self.parse_node,
+                                   dont_filter=True))
+        return requestUrl
+    
+
     def safeParse(self, xpathPattern):
         """safe about extract datas"""
         if not xpathPattern:
@@ -71,22 +88,13 @@ class XmlFeedSpider(XMLFeedSpider):
 
         return self.currentNode.xpath(xpathPattern).extract()
 
-    # def parse_node(self, response, node):
-        # self.get_next_request()
 
-    # def get_next_request(self):
-    #     spiderConfig = self.getSpiderConfig()
-    #     url = spiderConfig.get('start_urls', '')
-    #     yield Request(url, meta={'spiderConfig': spiderConfig}, callback=self.parse_next)
-
-    def parse_node(self, response, node):
-        
-        if self.is_remove_namespaces == '1':
-            logging.info("***************%s****************" % self.is_remove_namespaces)
-            response.selector.remove_namespaces()
+    def parse_node(self, response):
+        logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
+        self.initConfig(response.meta['spiderConfig'])
 
         item = XmlFeedItem()
-        self.currentNode = node
+        self.currentNode = response
         item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
 
         imageAndDescriptionInfos = self.parseDescriptionAndImages()
@@ -97,6 +105,14 @@ class XmlFeedSpider(XMLFeedSpider):
         item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
         item['rule_id'] = self.rule_id
         yield item
+
+        spiderConfig = getCrawlRequest()
+        if spiderConfig:
+            yield Request(spiderConfig.get('start_urls', '')[0],
+                                   headers={'Referer': 'http://www.google.com'},
+                                   meta={'spiderConfig':spiderConfig},
+                                   callback=self.parse_node,
+                                   dont_filter=True)
 
     def parseDescriptionAndImages(self):
         if not self.imgUrlXpath:

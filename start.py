@@ -3,15 +3,18 @@
 
 import time
 import logging
-import json
 from scrapy.crawler import CrawlerProcess
-from mySpiders.spiders.XmlFeedSpider import XmlFeedSpider
-from mySpiders.utils.httpRequest import HttpRequest
-from scrapy.conf import settings
+# from mySpiders.spiders.XmlFeedSpider import XmlFeedSpider
+from mySpiders.spiders.CommonXmlFeed import XmlFeedSpider
+
+from mySpiders.utils.http import getCrawlRequestLength
+# from mySpiders.utils.httpRequest import HttpRequest
+from scrapy.utils.project import get_project_settings
+# from scrapy.conf import settings
 
 
 SLEEP_TIMES = 6
-MAX_POOL_NUM = 1
+MAX_POOL_NUM = 3
 
 
 class RunSpider(object):
@@ -20,67 +23,62 @@ class RunSpider(object):
         if not size:
             size = MAX_POOL_NUM
         self.size = size
-        self.process = CrawlerProcess(settings)
+        self.process = None
+        # self.process = CrawlerProcess(get_project_settings())
         self.isRun = True
         self.isNew = True
         self.runNum = 0
 
     def initSpider(self):
+        if not self.process:
+            logging.info("---process---%s--" % self.process)            
+            self.process =  CrawlerProcess(get_project_settings())
+
         logging.info("begin---runSpider-----")
-        self.process.crawl(XmlFeedSpider,**self.spiderConfig)
+        self.process.crawl(XmlFeedSpider)
+        self.runNum += 1
         logging.info("end---runSpider-----")
 
     def runSpider(self):
-        self.isRun = True
-        if not self.isNew:
-            self.process =  CrawlerProcess(settings)
-
-        if self.isRun and self.isNew:
-            self.process.start()
-            self.isRun = False
-            self.isNew = False
+        # self.isRun = True
+        # if self.isRun and self.isNew:
+        logging.info("--runnig-process---%s--" % self.process)     
         self.runNum = 0
+        self.process.start()
+        # self.process.stop()
+        # del self.process
+        # self.process = None
+        # self.isRun = False
+        # self.isNew = False
+        
+        
 
     def run(self):
         while True:
-            self.spiderConfig = self.getCrawlRequest()
-            # logging.info("-----spiderConfig-----%s " % self.spiderConfig)
-            if not self.spiderConfig:
-                if self.runNum < 1:
-                    logging.info("-----sleep %s seconds--spiderNUM %s-- " % (SLEEP_TIMES,self.runNum))
-                    time.sleep(SLEEP_TIMES)
-                    continue
-                self.runSpider()
+            num = getCrawlRequestLength()
+            logging.info("-----need deal request num-----%s " % num)
+            if not num:
+                if self.runNum >= 1:
+                    logging.info("*************tt*************size:-%s--runNum:--%s--" % (self.size,self.runNum))  
+                    self.runSpider()
+                    self.process = None
+                logging.info("-----sleep %s seconds--spiderNUM %s-- " % (SLEEP_TIMES,num))
+                time.sleep(SLEEP_TIMES)
+                continue
             else:
                 self.initSpider()
-                self.runNum += 1
                 if self.runNum >= self.size:
+                    logging.info("--size:-%s--runNum:--%s--" % (self.size,self.runNum))   
                     self.runSpider()
-
-    def getCrawlRequest(self):
-        
-        try:
-            http = HttpRequest()
-            url = 'http://www.babel.com/api/get-spider-rules/get'
-            # res = http.setUrl(url).encrypt().post()
-            # res = json.loads(res)['data']
-            response = http.setUrl(url).setBody({}).encrypt([]).post()
-            res = json.loads(response)['data']
-
-            logging.info("-----test----%s----- " % res)
-            if res == 'null':
-                res = None
-        except Exception, e:
-            logging.info("-----%s-----" % e)
-            return None
-        return res
+                    self.process = None
 
 
 
 def main():
-    runSpider = RunSpider()
+    
     while True:
         try:
+            runSpider = RunSpider()
             runSpider.run()
         except Exception, e:
             logging.info("---while Exception : %s-----" % e )
