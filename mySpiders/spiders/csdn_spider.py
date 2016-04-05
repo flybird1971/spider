@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-#coding:utf-8
+# coding:utf-8
 
 from scrapy.spiders import Spider
 from scrapy.http import Request
 from scrapy.selector import Selector
 from mySpiders.items import CSDNItem
+import time
+import logging
+
 
 class CSDNSpider(Spider):
 
@@ -15,7 +18,11 @@ class CSDNSpider(Spider):
         "http://blog.csdn.net/u012150179/article/details/11749017"
     ]
 
-    def parse(self,response):
+    def parse(self, response):
+        with open('est--dat.json', 'a+') as f:
+            f.write("eeeeeeeeeeeeeeeeeeeee--------" + str(time.time())+'\n')
+        logging.info("eeeeeeeeeeeeeeeeeeeee--------" + str(time.time())+'\n')
+        # print "eeeeeeeeeeeeeeeeeeeee--------".time.time()
 
         sel = Selector(response)
 
