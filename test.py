@@ -1,26 +1,19 @@
 #!/usr/bin/env python
 # coding:utf8
 
-import json
-from mySpiders.utils.httpRequest import HttpRequest
+import time
+from scrapy.crawler import CrawlerProcess
+from mySpiders.spiders.csdn_spider import CSDNSpider
 
 
-def getCrawlRequest():
-    try:
-        http = HttpRequest()
-        url = 'http://www.babel.com/api/get-spider-rules/get'
-        body = {'action': 'get', 'version': '1.1'}
-        encryptFields = ['action', 'version']
-        res = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
-        res = json.loads(res)['data']
-        if res == 'null':
-            res = None
-    except Exception, e:
-        print e
-        return None
-    finally:
-        pass
-    return res
+def test():
+    process = CrawlerProcess()
+    process.crawl(CSDNSpider)
+    process.crawl(CSDNSpider)
+    process.start()  # the script will block here until all crawling jobs are finished
 
-if __name__ == '__main__':
-    print getCrawlRequest()
+    print "=============================="
+    time.sleep(1)
+
+
+test()
