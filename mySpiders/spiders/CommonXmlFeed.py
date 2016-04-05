@@ -83,6 +83,12 @@ class XmlFeedSpider(Spider):
 
 
     def parse_node(self, response):
+        
+        # if md5(response) == response.meta['spiderConfig'].lastMd5
+        #     return []
+        # else
+        #     md5 = md5(response)
+
         # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
         self.initConfig(response.meta['spiderConfig'])
 
@@ -99,6 +105,9 @@ class XmlFeedSpider(Spider):
         item['rule_id'] = self.rule_id
         yield item
 
+        # update md5 to mysql
+        # spiderConfig = getCrawlRequest(md5,id)
+        
         spiderConfig = getCrawlRequest()
         if spiderConfig:
             yield Request(spiderConfig.get('start_urls', '')[0],
