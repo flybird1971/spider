@@ -2,9 +2,9 @@
 #coding:utf-8
 
 import json
-import logging
+import mySpiders.utils.log as logging
 from httpRequest import HttpRequest
-# from hash import toMd5
+from config import requst_distinct_url, requst_length_url,request_url
 
 """
 检测 url 是否已经存在
@@ -12,7 +12,7 @@ from httpRequest import HttpRequest
 def requstDistinct(hashCode):
     try:
         http = HttpRequest()
-        url = 'http://www.babel.com/api/cluster-requst-distinct/index'
+        url = requst_distinct_url
         body = {'field':hashCode}
         encryptFields = ['field']
         response = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
@@ -30,7 +30,7 @@ def requstDistinct(hashCode):
 def getCrawlRequestLength():
     try:
         http = HttpRequest()
-        url = 'http://www.babel.com/api/get-spider-rules/get-length'
+        url = requst_length_url
         response = http.setUrl(url).setBody({}).encrypt([]).post()
         res = json.loads(response)['data']
         if res == 'null':
@@ -43,7 +43,7 @@ def getCrawlRequestLength():
 def getCrawlRequest():
         try:
             http = HttpRequest()
-            url = 'http://www.babel.com/api/get-spider-rules/get'
+            url = request_url
             response = http.setUrl(url).setBody({}).encrypt([]).post()
             res = json.loads(response)['data']
             if res == 'null':

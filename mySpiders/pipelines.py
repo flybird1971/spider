@@ -8,10 +8,11 @@
 import json
 import codecs
 import time
-import logging
+import mySpiders.utils.log as logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.mysql import Mysql
 from mySpiders.utils.http import requstDistinct
+from config import db_host,db_user,db_password,db_name,db_table_name
 
 
 class SpidersPipeline(object):
@@ -44,10 +45,11 @@ class BsbdjPipeline(object):
 class XmlFeedPipeline(object):
 
     def __init__(self):
-        config = {'host':'127.0.0.1','user':'root','passwd':'123456'}
-        database = 'babel'
+
+        config = {'host':db_host,'user':db_user,'passwd':db_password}
+        database = db_name
         self.db =  Mysql(config,database)
-        self.tableName = 'bb_crawl_infos'
+        self.tableName = db_table_name
 
     def process_item(self, item, spider):
 

@@ -10,8 +10,7 @@ import base64
 import md5
 import datetime
 import json
-
-ENCRYPT_MD5_KEY   =   '9b4fc52bc7208cd618195abee8d57ad6'
+from config import ENCRYPT_MD5_KEY
 
 class HttpRequest(object):
 
@@ -39,8 +38,6 @@ class HttpRequest(object):
 
     def setBody(self, body):
         self.body = body
-        # self.body['action'] = HttpRequest.action
-        # self.body['version'] = HttpRequest.version
         return self
 
     def getBody(self):

@@ -1,18 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
-import logging
-import time
-# import scrapy
-# import json
+import mySpiders.utils.log as logging
 from scrapy.http import Request
-# from scrapy.spiders import XMLFeedSpider
 from scrapy.spiders import Spider
 from mySpiders.items import XmlFeedItem
-# from mySpiders.utils.httpRequest import HttpRequest
 from mySpiders.utils.http import getCrawlRequest
-
-SLEEP_TIMES = 6
-MAX_RUN_NUM = 2
+from config import MAX_START_URLS_NUM
 
 
 class XmlFeedSpider(Spider):
@@ -69,7 +62,7 @@ class XmlFeedSpider(Spider):
 
     def start_requests(self):
         requestUrl = []
-        for i in xrange(0,MAX_RUN_NUM):
+        for i in xrange(0,MAX_START_URLS_NUM):
             spiderConfig = getCrawlRequest()
             if not spiderConfig:
                 break
@@ -90,7 +83,7 @@ class XmlFeedSpider(Spider):
 
 
     def parse_node(self, response):
-        logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
+        # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
         self.initConfig(response.meta['spiderConfig'])
 
         item = XmlFeedItem()
