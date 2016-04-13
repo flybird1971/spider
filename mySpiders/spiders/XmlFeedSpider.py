@@ -39,7 +39,7 @@ class XmlFeedSpider(XMLFeedSpider):
         XMLFeedSpider.__init__(self, *arg)
         self.currentNode = None
 
-    def initConfig(self,spiderConfig):
+    def initConfig(self, spiderConfig):
 
         # spiderConfig = self.getSpiderConfig()
         XmlFeedSpider.start_urls = spiderConfig.get('start_urls', '')
@@ -80,7 +80,7 @@ class XmlFeedSpider(XMLFeedSpider):
     #     yield Request(url, meta={'spiderConfig': spiderConfig}, callback=self.parse_next)
 
     def parse_node(self, response, node):
-        
+
         if self.is_remove_namespaces == '1':
             logging.info("***************%s****************" % self.is_remove_namespaces)
             response.selector.remove_namespaces()

@@ -12,7 +12,7 @@ import mySpiders.utils.log as logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.mysql import Mysql
 from mySpiders.utils.http import requstDistinct
-from config import db_host,db_user,db_password,db_name,db_table_name
+from config import db_host, db_user, db_password, db_name, db_table_name
 
 
 class SpidersPipeline(object):
@@ -46,44 +46,48 @@ class XmlFeedPipeline(object):
 
     def __init__(self):
 
-        config = {'host':db_host,'user':db_user,'passwd':db_password}
+        config = {'host': db_host, 'user': db_user, 'passwd': db_password}
         database = db_name
-        self.db =  Mysql(config,database)
+        self.db = Mysql(config, database)
         self.tableName = db_table_name
 
     def process_item(self, item, spider):
 
+        if not item:
+            logging.info('-----------------------list page repeat ')
+            return True
+
         rule_id = item['rule_id']
         public_time = int(time.time())
         create_time = int(time.time())
-        for index,title in enumerate(item['title']):
-            
+        for index, title in enumerate(item['title']):
+
             uniqueCode = toMd5(item['source_url'][index])
-            if not requstDistinct(uniqueCode) :
+            if not requstDistinct(uniqueCode):
                 logging.info("-----------%s----has exists----------" % item['source_url'][index])
                 continue
 
-            if index<len(item['img_url']) and item['img_url'][index]:
+            if index < len(item['img_url']) and item['img_url'][index]:
                 img_url = json.dumps(item['img_url'][index])
             else:
                 img_url = ''
 
-            if index<len(item['description']) and item['description'][index]:
+            if index < len(item['description']) and item['description'][index]:
                 description = item['description'][index]
             else:
-                continue           
-            
+                continue
+
             title = title.decode('utf8')[0:255].encode('utf8')
 
             insertData = {
-                'source_url'  : item['source_url'][index],
-                'unique_code' : uniqueCode,
-                'rule_id'     : rule_id,                
-                'title'       : title,      
-                'description' : description,
-                'img_url'     : img_url,
-                'public_time' : public_time,
-                'create_time' : create_time
+                'source_url': item['source_url'][index],
+                'unique_code': uniqueCode,
+                'rule_id': rule_id,
+                'title': title,
+                'description': description,
+                'img_url': img_url,
+                'public_time': public_time,
+                'create_time': create_time
             }
-            self.db.insert(self.tableName,insertData)
+            self.db.insert(self.tableName, insertData)
         return True

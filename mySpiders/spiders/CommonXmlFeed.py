@@ -6,6 +6,7 @@ from scrapy.spiders import Spider
 from mySpiders.items import XmlFeedItem
 from mySpiders.utils.http import getCrawlRequest
 from config import MAX_START_URLS_NUM
+from mySpiders.utils.hash import toMd5
 
 
 class XmlFeedSpider(Spider):
@@ -33,11 +34,12 @@ class XmlFeedSpider(Spider):
         self.pubDateXpath = ''
         self.guidXpath = ''
         self.rule_id = ''
+        self.checkTxtXpath = ''
         self.is_remove_namespaces = False
-        Spider.__init__(self, *arg,**argdict)
+        Spider.__init__(self, *arg, **argdict)
         self.currentNode = None
 
-    def initConfig(self,spiderConfig):
+    def initConfig(self, spiderConfig):
 
         XmlFeedSpider.itertag = spiderConfig.get('itertag', '')
         self.titleXpath = spiderConfig.get('title_node', '')
@@ -58,21 +60,22 @@ class XmlFeedSpider(Spider):
         # logging.info("--------guid_node---%s---------------" % self.guidXpath)
         self.rule_id = spiderConfig.get('id', '')
         self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
+
+        self.checkTxtXpath = spiderConfig.get('check_area_node', '//rss')
         pass
 
     def start_requests(self):
         requestUrl = []
-        for i in xrange(0,MAX_START_URLS_NUM):
+        for i in xrange(0, MAX_START_URLS_NUM):
             spiderConfig = getCrawlRequest()
             if not spiderConfig:
                 break
 
             requestUrl.append(Request(spiderConfig.get('start_urls', '')[0],
-                                   meta={'spiderConfig':spiderConfig},
-                                   callback=self.parse_node,
-                                   dont_filter=True))
+                                      meta={'spiderConfig': spiderConfig},
+                                      callback=self.parse_node,
+                                      dont_filter=True))
         return requestUrl
-    
 
     def safeParse(self, xpathPattern):
         """safe about extract datas"""
@@ -81,40 +84,37 @@ class XmlFeedSpider(Spider):
 
         return self.currentNode.xpath(xpathPattern).extract()
 
-
     def parse_node(self, response):
-        
-        # if md5(response) == response.meta['spiderConfig'].lastMd5
-        #     return []
-        # else
-        #     md5 = md5(response)
 
+        self.currentNode = response
         # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
         self.initConfig(response.meta['spiderConfig'])
 
-        item = XmlFeedItem()
-        self.currentNode = response
-        item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
+        checkText = self.safeParse(self.checkTxtXpath)
+        last_md5 = toMd5(checkText)
+        if last_md5 == response.meta['spiderConfig'].get('last_md5', ''):
+            yield []
+        else:
+            item = XmlFeedItem()
+            item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
 
-        imageAndDescriptionInfos = self.parseDescriptionAndImages()
-        item['img_url'] = imageAndDescriptionInfos['img_url']
-        item['description'] = imageAndDescriptionInfos['description']
+            imageAndDescriptionInfos = self.parseDescriptionAndImages()
+            item['img_url'] = imageAndDescriptionInfos['img_url']
+            item['description'] = imageAndDescriptionInfos['description']
 
-        item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
-        item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
-        item['rule_id'] = self.rule_id
-        yield item
+            item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
+            item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
+            item['rule_id'] = self.rule_id
+            yield item
 
-        # update md5 to mysql
-        # spiderConfig = getCrawlRequest(md5,id)
-        
-        spiderConfig = getCrawlRequest()
-        if spiderConfig:
-            yield Request(spiderConfig.get('start_urls', '')[0],
-                                   headers={'Referer': 'http://www.google.com'},
-                                   meta={'spiderConfig':spiderConfig},
-                                   callback=self.parse_node,
-                                   dont_filter=True)
+            # update md5 to mysql
+            spiderConfig = getCrawlRequest({'last_md5': last_md5, 'id': self.rule_id})
+            if spiderConfig:
+                yield Request(spiderConfig.get('start_urls', '')[0],
+                              headers={'Referer': 'http://www.google.com'},
+                              meta={'spiderConfig': spiderConfig},
+                              callback=self.parse_node,
+                              dont_filter=True)
 
     def parseDescriptionAndImages(self):
         if not self.imgUrlXpath:
