@@ -4,7 +4,7 @@
 import time
 from scrapy.crawler import CrawlerProcess
 from mySpiders.spiders.csdn_spider import CSDNSpider
-from mySpiders.utils.http import getCrawlRequest
+from mySpiders.utils.http import getCrawlRequest, requstDistinct
 
 
 def test():
@@ -20,4 +20,24 @@ def test():
 # test()
 
 # param = {'last_md5': 'd78419dfd961ca6c24a80b6f7800d7e5', 'id': '1'}
-print getCrawlRequest()
+# print getCrawlRequest()
+
+listd = [
+    'aaaaaaaaaaaaa221e1e23',
+    'aaaaaaaaaaaaa11e1',
+    'aaaaaaaaaaaaa2e11',
+    'aaaaaaaaaaaaa33e11',
+]
+# t = [x.encode('utf-8') for x in listd]
+# print requstDistinct(listd)
+td = {
+    'a': 'a21',
+    'b': 'cc'
+}
+l = ['a']
+
+print td
+for i, unique in enumerate(l):
+    print i,unique
+    del(td[unique])
+print td
