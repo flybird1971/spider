@@ -72,8 +72,6 @@ class HttpRequest(object):
             return response
         except (urllib2.HTTPError, Exception), e:
             print e
-        finally:
-            pass
 
     def toMd5(self, data):
         m = md5.new()

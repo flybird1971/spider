@@ -15,18 +15,18 @@ def requstDistinct(hashCode):
     try:
         http = HttpRequest()
         url = requst_distinct_url
+        hashCode = ",".join(hashCode)
         body = {'field': hashCode}
         encryptFields = ['field']
+        encryptFields = []
         response = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
         res = json.loads(response)['data']
-        if res == '1':
-            res = True
-        else:
-            res = False
+        if not res:
+            return []
+        return res
     except Exception, e:
-        res = None
+        res = []
         logging.info('-----------%s-------' % e)
-    finally:
         return res
 
 
