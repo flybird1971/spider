@@ -4,7 +4,7 @@
 import json
 import mySpiders.utils.log as logging
 from httpRequest import HttpRequest
-from config import requst_distinct_url, requst_length_url, request_url
+from config import requst_distinct_url, requst_length_url, request_url, sync_last_md5_url
 
 """
 检测 url 是否已经存在
@@ -45,6 +45,7 @@ def getCrawlRequestLength():
 
 
 def getCrawlRequest(params={}):
+
     try:
         http = HttpRequest()
         url = request_url
@@ -58,7 +59,23 @@ def getCrawlRequest(params={}):
         return None
     return res
 
-__all__ = ['requstDistinct', 'getCrawlRequestLength', 'getCrawlRequest']
+
+def syncLastMd5(params):
+
+    try:
+        http = HttpRequest()
+        url = sync_last_md5_url
+        response = http.setUrl(url).setBody(params).encrypt([]).post()
+        res = json.loads(response)['data']
+        if res == 'null':
+            res = None
+    except Exception, e:
+        print e
+        logging.info("-----%s-----" % e)
+        return None
+    return res
+
+__all__ = ['requstDistinct', 'getCrawlRequestLength', 'getCrawlRequest', 'syncLastMd5']
 
 # print requstDistinct(toMd5('http://www.ftchinese.com/story/001066870'))
 # print getCrawlRequest()

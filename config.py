@@ -10,6 +10,9 @@ MAIN_LOOP_SLEEP_TIME = 6
 # runspider 线程池
 SPIDER_MAX_POOL_NUM = 3
 
+# referer
+REFERER = 'http://www.google.com'
+
 # http通信密钥
 ENCRYPT_MD5_KEY = '9b4fc52bc7208cd618195abee8d57ad6'
 
@@ -24,6 +27,9 @@ requst_length_url = 'http://www.babel.com/api/get-spider-rules/get-length'
 
 # 获取爬虫规则
 request_url = 'http://www.babel.com/api/get-spider-rules/get'
+
+# 同步last_md5 只是通用spider使用，rss不使用
+sync_last_md5_url = 'http://www.babel.com/api/get-spider-rules/sync-last-md5'
 
 # 数据库配置
 db_host = '127.0.0.1'

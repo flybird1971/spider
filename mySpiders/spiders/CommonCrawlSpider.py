@@ -4,8 +4,8 @@ import mySpiders.utils.log as logging
 from scrapy.http import Request
 from scrapy.spiders import Spider
 from mySpiders.items import XmlFeedItem
-from mySpiders.utils.http import getCrawlRequest
-from config import MAX_START_URLS_NUM
+from mySpiders.utils.http import getCrawlRequest, syncLastMd5, requstDistinct
+from config import REFERER
 from mySpiders.utils.hash import toMd5
 
 """
@@ -71,8 +71,6 @@ class CommonCrawlSpider(Spider):
 
     name = 'CommonCrawlSpider'
 
-    itertag = None
-
     # allowed_domains = ['zhihu.com']
 
     start_urls = []
@@ -81,7 +79,9 @@ class CommonCrawlSpider(Spider):
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
+        """ 初始化对象属性 """
 
+        self.rule = ''
         self.titleXpath = ''
         self.descriptionXpath = ''
         self.descriptionLenght = 0
@@ -96,10 +96,13 @@ class CommonCrawlSpider(Spider):
         self.is_remove_namespaces = False
         Spider.__init__(self, *arg, **argdict)
         self.currentNode = None
+        self.isDone = False
+        self.isFirstListPage = True
 
     def initConfig(self, spiderConfig):
+        """initing"""
 
-        CommonCrawlSpider.itertag = spiderConfig.get('itertag', '')
+        self.rule = spiderConfig.get('rule', '')
         self.titleXpath = spiderConfig.get('title_node', '')
         self.descriptionXpath = spiderConfig.get('description_node', '')
         self.descriptionLenght = int(spiderConfig.get('description_length', 1))
@@ -115,66 +118,110 @@ class CommonCrawlSpider(Spider):
         self.videoUrlXpath = spiderConfig.get('video_node', '')
         self.pubDateXpath = spiderConfig.get('public_time', '')
         self.guidXpath = spiderConfig.get('guid_node', '')
+
         # logging.info("--------guid_node---%s---------------" % self.guidXpath)
         self.rule_id = spiderConfig.get('id', '')
         self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
-
-        self.checkTxtXpath = spiderConfig.get('check_area_node', '//rss')
-        pass
+        self.checkTxtXpath = spiderConfig.get('check_area_node', '//body')
 
     def start_requests(self):
-        requestUrl = []
-        for i in xrange(0, MAX_START_URLS_NUM):
-            spiderConfig = getCrawlRequest()
-            if not spiderConfig:
-                break
 
-            requestUrl.append(Request(spiderConfig.get('start_urls', '')[0],
-                                      meta={'spiderConfig': spiderConfig},
-                                      callback=self.parse_node,
-                                      dont_filter=True))
-        return requestUrl
+        spiderConfig = getCrawlRequest()
+        if not spiderConfig:
+            return []
+
+        self.initConfig(spiderConfig)
+        # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
+        yield Request(spiderConfig.get('start_urls', '')[0],
+                      callback=self.parse, dont_filter=True)
+
+    def parse(self, response):
+        """ 列表页解析 """
+
+        self.isDone = False
+        self.currentNode = response
+
+        last_md5 = ''
+        if self.isFirstListPage:
+            checkText = self.safeParse(self.checkTxtXpath)
+            last_md5 = toMd5(checkText)
+
+        if self.isFirstListPage and last_md5 == response.meta['spiderConfig'].get('last_md5', ''):
+            yield []
+        else:
+            self.getDetailPageUrls()
+
+            # 获取下一列表页url
+            if not self.isDone:
+                self.getNextListPageUrl()
+
+            # 同步md5码 & 同步last_id
+            if self.isFirstListPage:
+                syncLastMd5({'last_md5': last_md5, 'id': self.rule_id})
+
+        self.isFirstListPage = False
+
+    def getNextListPageUrl(self):
+
+        nextListPageURL = [t.encode('utf-8') for t in self.safeParse(self.next_request_url)]
+
+        if len(nextListPageURL) < 0:
+            yield []
+
+        yield Request(nextListPageURL[0], headers={'Referer': REFERER}, callback=self.parse, dont_filter=True)
+
+    def getDetailPageUrls(self):
+
+        detailUrls = [t.encode('utf-8') for t in self.safeParse(self.rule)]
+        # 批量验证urls是否重复
+        detailUrlsByFilter = self.distinctRequestUrls(detailUrls)
+        if len(detailUrls) < 1 or len(detailUrlsByFilter) != len(detailUrls):
+            self.isDone = True
+
+        if detailUrlsByFilter:
+            requestUrl = []
+            for i in detailUrlsByFilter:
+                requestUrl.append(Request(detailUrlsByFilter[i], callback=self.parse_detail_page, dont_filter=True))
+            yield requestUrl
+
+    def distinctRequestUrls(self, urls):
+
+        if len(urls) < 1:
+            return []
+
+        uniqueCodeDict = {}
+        for i in urls:
+            uniqueCodeDict[toMd5(urls[i])] = urls[i]
+        repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
+        for i, unique in enumerate(repeatUniqueCode):
+            del(uniqueCodeDict[unique])
+        return uniqueCodeDict.values()
 
     def safeParse(self, xpathPattern):
         """safe about extract datas"""
+
         if not xpathPattern:
             return []
 
         return self.currentNode.xpath(xpathPattern).extract()
 
-    def parse_node(self, response):
+    def parse_detail_page(self, response):
 
         self.currentNode = response
-        # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
-        self.initConfig(response.meta['spiderConfig'])
+        item = XmlFeedItem()
+        item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
 
-        checkText = self.safeParse(self.checkTxtXpath)
-        last_md5 = toMd5(checkText)
-        if last_md5 == response.meta['spiderConfig'].get('last_md5', ''):
-            yield []
-        else:
-            item = XmlFeedItem()
-            item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
+        imageAndDescriptionInfos = self.parseDescriptionAndImages()
+        item['img_url'] = imageAndDescriptionInfos['img_url']
+        item['description'] = imageAndDescriptionInfos['description']
 
-            imageAndDescriptionInfos = self.parseDescriptionAndImages()
-            item['img_url'] = imageAndDescriptionInfos['img_url']
-            item['description'] = imageAndDescriptionInfos['description']
-
-            item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
-            item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
-            item['rule_id'] = self.rule_id
-            yield item
-
-            # update md5 to mysql
-            spiderConfig = getCrawlRequest({'last_md5': last_md5, 'id': self.rule_id})
-            if spiderConfig:
-                yield Request(spiderConfig.get('start_urls', '')[0],
-                              headers={'Referer': 'http://www.google.com'},
-                              meta={'spiderConfig': spiderConfig},
-                              callback=self.parse_node,
-                              dont_filter=True)
+        item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
+        item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
+        item['rule_id'] = self.rule_id
+        yield item
 
     def parseDescriptionAndImages(self):
+
         if not self.imgUrlXpath:
             imgUrlList = []
             descriptionlist = []
