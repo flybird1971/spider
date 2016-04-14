@@ -24,4 +24,4 @@ def base64Encode(data):
 def base64Decode(data):
     return base64.b64decode(data)
 
-__all__ = ['toMd5']
+__all__ = ['toMd5', 'base64Encode', 'base64Decode']

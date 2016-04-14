@@ -21,7 +21,8 @@ def test():
 # test()
 
 param = {'last_md5': toMd5(str(time.time())), 'id': '66'}
-print syncLastMd5(param)
+# print syncLastMd5(param)
+print getCrawlRequest()
 
 # listd = [
 #     'aaaaaaaaaaaaa221e1e23',

@@ -18,5 +18,3 @@ def info(infos, isPrint=False):
         logging.info(infos)
 
 __all__ = ['info']
-
-info('aaaaaaaaaaa')

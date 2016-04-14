@@ -30,7 +30,7 @@ NEWSPIDER_MODULE = 'mySpiders.spiders'
 # CONCURRENT_REQUESTS_PER_IP=16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED=False
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 # TELNETCONSOLE_ENABLED=False
@@ -69,6 +69,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'mySpiders.pipelines.XmlFeedPipeline': 10,
+    'mySpiders.pipelines.CommonCrawlPipeline': 11,
     # 'mySpiders.pipelines.BsbdjPipeline' : 100,
     # 'mySpiders.pipelines.CSDNPipeline': 300,
     # 'mySpiders.pipelines.SomePipeline': 300,

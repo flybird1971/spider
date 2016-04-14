@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import re
-import mySpiders.utils.log as logging
+
+import urlparse
 from scrapy.http import Request
 from scrapy.spiders import Spider
+import mySpiders.utils.log as logging
 from mySpiders.items import XmlFeedItem
+
 from mySpiders.utils.http import getCrawlRequest, syncLastMd5, requstDistinct
-from config import REFERER
 from mySpiders.utils.hash import toMd5
+from config import REFERER
 
 """
 概略：
@@ -77,6 +80,7 @@ class CommonCrawlSpider(Spider):
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
+    url_domain_pattern = re.compile(r'$http://.*?', re.M | re.S)
 
     def __init__(self, *arg, **argdict):
         """ 初始化对象属性 """
@@ -94,6 +98,8 @@ class CommonCrawlSpider(Spider):
         self.rule_id = ''
         self.checkTxtXpath = ''
         self.is_remove_namespaces = False
+        self.last_md5 = ''
+        self.next_request_url = ''
         Spider.__init__(self, *arg, **argdict)
         self.currentNode = None
         self.isDone = False
@@ -123,6 +129,8 @@ class CommonCrawlSpider(Spider):
         self.rule_id = spiderConfig.get('id', '')
         self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
         self.checkTxtXpath = spiderConfig.get('check_area_node', '//body')
+        self.last_md5 = spiderConfig.get('last_md5', '')
+        self.next_request_url = spiderConfig.get('next_request_url', '')
 
     def start_requests(self):
 
@@ -131,9 +139,8 @@ class CommonCrawlSpider(Spider):
             return []
 
         self.initConfig(spiderConfig)
-        # logging.info("*********meta******%s****************" % response.meta['spiderConfig'])
-        yield Request(spiderConfig.get('start_urls', '')[0],
-                      callback=self.parse, dont_filter=True)
+        logging.info("*********meta******%s****************" % spiderConfig)
+        return [Request(spiderConfig.get('start_urls', '')[0], callback=self.parse, dont_filter=True)]
 
     def parse(self, response):
         """ 列表页解析 """
@@ -146,14 +153,17 @@ class CommonCrawlSpider(Spider):
             checkText = self.safeParse(self.checkTxtXpath)
             last_md5 = toMd5(checkText)
 
-        if self.isFirstListPage and last_md5 == response.meta['spiderConfig'].get('last_md5', ''):
+        logging.info("*********last_md5 : %s   self.last_md5 : %s*****" % (last_md5, self.last_md5))
+        if self.isFirstListPage and last_md5 == self.last_md5:
             yield []
         else:
-            self.getDetailPageUrls()
+            for request in self.getDetailPageUrls():
+                yield request
 
             # 获取下一列表页url
             if not self.isDone:
-                self.getNextListPageUrl()
+                for request in self.getNextListPageUrl():
+                    yield request
 
             # 同步md5码 & 同步last_id
             if self.isFirstListPage:
@@ -163,26 +173,38 @@ class CommonCrawlSpider(Spider):
 
     def getNextListPageUrl(self):
 
-        nextListPageURL = [t.encode('utf-8') for t in self.safeParse(self.next_request_url)]
+        nextListPageURL = [self.appendDomain(t.encode('utf-8')) for t in self.safeParse(self.next_request_url)]
+        logging.info("*********nextListPageURL : %s   *****" % nextListPageURL[0])
 
-        if len(nextListPageURL) < 0:
-            yield []
-
-        yield Request(nextListPageURL[0], headers={'Referer': REFERER}, callback=self.parse, dont_filter=True)
+        requestUrl = []
+        if len(nextListPageURL) > 0:
+            requestUrl.append(
+                Request(nextListPageURL[0], headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
+        return requestUrl
 
     def getDetailPageUrls(self):
 
-        detailUrls = [t.encode('utf-8') for t in self.safeParse(self.rule)]
+        detailUrls = [self.appendDomain(t.encode('utf-8')) for t in self.safeParse(self.rule)]
+        logging.info("*********detailUrls : %s   *****" % detailUrls)
         # 批量验证urls是否重复
         detailUrlsByFilter = self.distinctRequestUrls(detailUrls)
         if len(detailUrls) < 1 or len(detailUrlsByFilter) != len(detailUrls):
             self.isDone = True
 
+        logging.info("*********detailUrlsByFilter : %s   *****" % detailUrlsByFilter)
+        requestUrl = []
         if detailUrlsByFilter:
-            requestUrl = []
-            for i in detailUrlsByFilter:
-                requestUrl.append(Request(detailUrlsByFilter[i], callback=self.parse_detail_page, dont_filter=True))
-            yield requestUrl
+            for detailUrl in detailUrlsByFilter:
+                requestUrl.append(Request(detailUrl, callback=self.parse_detail_page, dont_filter=True))
+        return requestUrl
+
+    def appendDomain(self, url):
+
+        parsed_uri = urlparse.urlparse(self.currentNode.url)
+        domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+        if not self.url_domain_pattern.match(url):
+            url = urlparse.urljoin(domain, url)
+        return url
 
     def distinctRequestUrls(self, urls):
 
@@ -190,11 +212,11 @@ class CommonCrawlSpider(Spider):
             return []
 
         uniqueCodeDict = {}
-        for i in urls:
-            uniqueCodeDict[toMd5(urls[i])] = urls[i]
-        repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
-        for i, unique in enumerate(repeatUniqueCode):
-            del(uniqueCodeDict[unique])
+        for url in urls:
+            uniqueCodeDict[toMd5(url)] = url
+        # repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
+        # for i, unique in enumerate(repeatUniqueCode):
+        #     del(uniqueCodeDict[unique])
         return uniqueCodeDict.values()
 
     def safeParse(self, xpathPattern):
@@ -207,6 +229,7 @@ class CommonCrawlSpider(Spider):
 
     def parse_detail_page(self, response):
 
+        logging.info('--------------------parse detail page-----------')
         self.currentNode = response
         item = XmlFeedItem()
         item['title'] = [t.encode('utf-8') for t in self.safeParse(self.titleXpath)]
@@ -218,6 +241,7 @@ class CommonCrawlSpider(Spider):
         item['public_time'] = [p.encode('utf-8') for p in self.safeParse(self.pubDateXpath)]
         item['source_url'] = [g.encode('utf-8') for g in self.safeParse(self.guidXpath)]
         item['rule_id'] = self.rule_id
+        print item
         yield item
 
     def parseDescriptionAndImages(self):

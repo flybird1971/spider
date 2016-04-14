@@ -7,7 +7,10 @@ from httpRequest import HttpRequest
 from config import requst_distinct_url, requst_length_url, request_url, sync_last_md5_url
 
 """
-检测 url 是否已经存在
+requstDistinct          批量检测url是否已经存在
+getCrawlRequestLength   获取待处理request个数
+getCrawlRequest         获取spider_rules配置，可以同时更新last_md5校验码
+syncLastMd5             同步last_md5校验码
 """
 
 
