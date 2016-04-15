@@ -20,7 +20,6 @@ def requstDistinct(hashCode):
         url = requst_distinct_url
         hashCode = ",".join(hashCode)
         body = {'field': hashCode}
-        encryptFields = ['field']
         encryptFields = []
         response = http.setUrl(url).setBody(body).encrypt(encryptFields).post()
         res = json.loads(response)['data']
