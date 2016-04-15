@@ -149,7 +149,7 @@ class CommonCrawlSpider(Spider):
     def parse(self, response):
         """ 列表页解析 """
 
-        self.isDone = False
+        # self.isDone = False
         last_md5 = ''
         if self.isFirstListPage:
             checkText = self.safeParse(response, self.checkTxtXpath)
@@ -193,11 +193,13 @@ class CommonCrawlSpider(Spider):
                       for t in self.safeParse(response, self.rule, True, False)]
 
         # 批量验证urls是否重复
+        logging.info("*********detailUrls : %s   *****" % detailUrls)
         detailUrlsByFilter = self.distinctRequestUrls(detailUrls)
+        logging.info("*********detailUrlsByFilter : %s   *****" % detailUrlsByFilter)
+
         if len(detailUrls) < 1 or len(detailUrlsByFilter) != len(detailUrls):
             self.isDone = True
 
-        logging.info("*********detailUrlsByFilter : %s   *****" % detailUrlsByFilter)
         requestUrl = []
         if detailUrlsByFilter:
             for detailUrl in detailUrlsByFilter:
@@ -222,7 +224,11 @@ class CommonCrawlSpider(Spider):
         uniqueCodeDict = {}
         for url in urls:
             uniqueCodeDict[toMd5(url)] = url
+
+        # logging.info("*********uniqueCodeDict : %s   *****" % uniqueCodeDict)
         repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
+        # logging.info("*********repeatUniqueCode : %s   *****" % repeatUniqueCode)
+
         for i, unique in enumerate(repeatUniqueCode):
             del(uniqueCodeDict[unique])
         return uniqueCodeDict.values()
