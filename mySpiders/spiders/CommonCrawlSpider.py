@@ -11,9 +11,9 @@ from mySpiders.utils.http import getCrawlRequest, syncLastMd5, requstDistinct
 from mySpiders.utils.hash import toMd5
 from config import REFERER
 
-import sys  
-reload(sys)  
-sys.setdefaultencoding("utf8")  
+import sys
+reload(sys)
+sys.setdefaultencoding("utf8")
 
 """
 概略：
@@ -150,23 +150,21 @@ class CommonCrawlSpider(Spider):
         """ 列表页解析 """
 
         self.isDone = False
-        self.currentNode = response
-
         last_md5 = ''
         if self.isFirstListPage:
-            checkText = self.safeParse(self.checkTxtXpath)
+            checkText = self.safeParse(response, self.checkTxtXpath)
             last_md5 = toMd5(checkText)
 
         logging.info("*********last_md5 : %s   self.last_md5 : %s*****" % (last_md5, self.last_md5))
-        if 0 and self.isFirstListPage and last_md5 == self.last_md5:
+        if self.isFirstListPage and last_md5 == self.last_md5:
             yield []
         else:
-            for request in self.getDetailPageUrls():
+            for request in self.getDetailPageUrls(response):
                 yield request
 
             # 获取下一列表页url
             if not self.isDone:
-                for request in self.getNextListPageUrl():
+                for request in self.getNextListPageUrl(response):
                     yield request
 
             # 同步md5码 & 同步last_id
@@ -175,22 +173,25 @@ class CommonCrawlSpider(Spider):
 
         self.isFirstListPage = False
 
-    def getNextListPageUrl(self):
+    def getNextListPageUrl(self, response):
 
         logging.info("*********next_request_url : %s   *****" % self.next_request_url)
-        nextListPageURL = self.appendDomain(self.safeParse(self.next_request_url).encode('utf-8'))
+        nextListPageURL = self.appendDomain(
+            self.safeParse(response, self.next_request_url),
+            response.url)  # .encode('utf-8'))
         logging.info("*********nextListPageURL : %s   *****" % nextListPageURL)
 
         requestUrl = []
-        if len(nextListPageURL) > 0:
+        if nextListPageURL:
             requestUrl.append(
                 Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
         return requestUrl
 
-    def getDetailPageUrls(self):
+    def getDetailPageUrls(self, response):
 
-        detailUrls = [self.appendDomain(t.encode('utf-8')) for t in self.safeParse(self.rule,True)]
-        
+        detailUrls = [self.appendDomain(t.encode('utf-8'), response.url)
+                      for t in self.safeParse(response, self.rule, True, False)]
+
         # 批量验证urls是否重复
         detailUrlsByFilter = self.distinctRequestUrls(detailUrls)
         if len(detailUrls) < 1 or len(detailUrlsByFilter) != len(detailUrls):
@@ -200,14 +201,16 @@ class CommonCrawlSpider(Spider):
         requestUrl = []
         if detailUrlsByFilter:
             for detailUrl in detailUrlsByFilter:
-                requestUrl.append(Request(detailUrl, headers={'Referer': REFERER}, callback=self.parse_detail_page, dont_filter=True))
+                requestUrl.append(
+                    Request(detailUrl, headers={'Referer': REFERER}, callback=self.parse_detail_page, dont_filter=True))
         return requestUrl
 
-    def appendDomain(self, url):
+    def appendDomain(self, url, domain=''):
 
-        parsed_uri = urlparse.urlparse(self.currentNode.url)
+        parsed_uri = urlparse.urlparse(domain)
         domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-        if not self.url_domain_pattern.match(url):
+        logging.info("*********apend before : %s   *****" % url)
+        if isinstance(url, (buffer, str)) and not self.url_domain_pattern.match(url):
             url = urlparse.urljoin(domain, url)
         return url
 
@@ -219,58 +222,56 @@ class CommonCrawlSpider(Spider):
         uniqueCodeDict = {}
         for url in urls:
             uniqueCodeDict[toMd5(url)] = url
-        # repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
-        # for i, unique in enumerate(repeatUniqueCode):
-        #     del(uniqueCodeDict[unique])
+        repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
+        for i, unique in enumerate(repeatUniqueCode):
+            del(uniqueCodeDict[unique])
         return uniqueCodeDict.values()
 
-    def safeParse(self, xpathPattern,isMutile=False):
+    def safeParse(self, response, xpathPattern, isMutile=False, isUtf8=True):
         """safe about extract datas"""
 
         if not xpathPattern:
-            return ''
+            return ([] if isMutile else "")
 
         if isMutile:
-            return self.currentNode.xpath(xpathPattern).extract()
-        else:    
-            return self.currentNode.xpath(xpathPattern).extract_first()
+            if isUtf8:
+                return [(t.encode('utf-8') if t else t) for t in response.xpath(xpathPattern).extract()]
+            else:
+                return response.xpath(xpathPattern).extract()
+        else:
+            if isUtf8:
+                tmp = response.xpath(xpathPattern).extract_first()
+                return (tmp.encode('utf-8') if tmp else tmp)
+            else:
+                return response.xpath(xpathPattern).extract_first()
 
     def parse_detail_page(self, response):
 
         logging.info('--------------------parse detail page-----------')
-        self.currentNode = response
+        # self.currentNode = response
         item = XmlFeedItem()
-        item['title'] = self.safeParse(self.titleXpath)
-        if item['title']:
-            item['title'] = item['title'].encode('utf-8')
+        item['title'] = self.safeParse(response, self.titleXpath)
 
-        imageAndDescriptionInfos = self.parseDescriptionAndImages()
+        imageAndDescriptionInfos = self.parseDescriptionAndImages(response)
         item['img_url'] = imageAndDescriptionInfos['img_url']
         item['description'] = imageAndDescriptionInfos['description']
 
-        item['public_time'] = self.safeParse(self.pubDateXpath)
-        if item['public_time']:
-            item['public_time'] = item['public_time'].encode('utf-8')
-
-        item['source_url'] = self.appendDomain(self.safeParse(self.guidXpath))
-        if item['source_url']:
-            item['source_url'] = item['source_url'].encode('utf-8')
-
+        item['public_time'] = self.safeParse(response, self.pubDateXpath)
+        item['source_url'] = self.appendDomain(self.safeParse(response, self.guidXpath), response.url)
         item['rule_id'] = self.rule_id
         yield item
 
-
-    def parseDescriptionAndImages(self):
+    def parseDescriptionAndImages(self, response):
 
         if not self.imgUrlXpath:
-            txt = self.safeParse(self.descriptionXpath)#.encode('utf-8')
+            txt = self.safeParse(response, self.descriptionXpath)  # .encode('utf-8')
             extendInfo = self.__parseDescriptionAndImg(txt)
             description = extendInfo['description']
-            imgUrlList =  extendInfo['img_url']
+            imgUrlList = extendInfo['img_url']
         else:
-            txt = self.safeParse(self.descriptionXpath).encode('utf-8')
+            txt = self.safeParse(response, self.descriptionXpath)  # .encode('utf-8')
             description = self.__parseDescriptionOnly(txt)
-            imgUrlList = self.safeParse(self.imgUrlXpath,True)#.encode('utf-8')
+            imgUrlList = self.safeParse(response, self.imgUrlXpath, True)  # .encode('utf-8')
 
         return {"img_url": imgUrlList, "description": description}
 
