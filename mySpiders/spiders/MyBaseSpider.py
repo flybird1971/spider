@@ -1,87 +1,200 @@
-#!/usr/bin/env python
-#coding:utf-8
-
-from scrapy.spiders import XMLFeedSpider
-# from mySpiders.items import XmlFeedItem
+# -*- coding: utf-8 -*-
 import re
 
-# class MyBaseSpider(object):
-#     """docstring for MyBaseSpider"""
-#     def __init__(self, arg):
-#         super(MyBaseSpider, self).__init__()
-#         self.arg = arg
-        
+import urlparse
+from scrapy.http import Request
+from scrapy.spiders import Spider
+import mySpiders.utils.log as logging
+# from mySpiders.items import XmlFeedItem
+
+from mySpiders.utils.http import requstDistinct
+from mySpiders.utils.hash import toMd5
+from config import REFERER
+
+import sys
+reload(sys)
+sys.setdefaultencoding("utf8")
 
 
-class MyBaseSpider(XMLFeedSpider):
-    
-    name = 'testxmlfeed'
+class MyBaseSpider(Spider):
 
-    # allowed_domains = ['zhihu.com']
+    # name = 'JokeSpider'
 
-    start_urls = []
-    iterator = 'iternodes'  # you can change this; see the docs
-    itertag = 'channel'  # change it accordingly
-    titleXpath = ''
-    descriptionXpath = ''
-    linkXpath  = ''
-    imgUrlXpath = ''
-    videoUrlXpath = ''
-    pubDateXpath = ''
-    guidXpath = ''
+    # start_urls = []
 
-    img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"](.*?)\>',re.M|re.S)
-    text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]',re.M|re.S)
+    img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
+    text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
+    url_domain_pattern = re.compile(r'$http://.*?', re.M | re.S)
 
-    def __init__(self,*arg,**argdict):
-        self.initConfig(*arg,**argdict)
-        XMLFeedSpider.__init__(*arg,**argdict)
+    def __init__(self, *arg, **argdict):
+        """ 初始化对象属性 """
 
-    def initConfig(self,*arg,**argdict):
-        XmlFeedSpider.start_urls = argdict['start_urls']
-        XmlFeedSpider.itertag = argdict['itertag']
-        XmlFeedSpider.titleXpath = argdict['titleXpath']
-        XmlFeedSpider.descriptionXpath = argdict['descriptionXpath']
-        XmlFeedSpider.linkXpath = argdict['linkXpath']
-        XmlFeedSpider.imgUrlXpath = argdict['imgUrlXpath']
-        XmlFeedSpider.videoUrlXpath = argdict['videoUrlXpath']
-        XmlFeedSpider.pubDateXpath = argdict['pubDateXpath']
-        XmlFeedSpider.guidXpath = argdict['guidXpath']
-        pass
+        self.rule = ''
+        self.titleXpath = ''
+        self.descriptionXpath = ''
+        self.descriptionLenght = 0
+        self.linkXpath = ''
+        self.imgUrlXpath = ''
+        self.imageNum = 1
+        self.videoUrlXpath = ''
+        self.pubDateXpath = ''
+        self.guidXpath = ''
+        self.rule_id = ''
+        self.checkTxtXpath = ''
+        self.is_remove_namespaces = False
+        self.last_md5 = ''
+        self.next_request_url = ''
+        Spider.__init__(self, *arg, **argdict)
+        self.currentNode = None
+        self.isDone = False
+        self.isFirstListPage = True
 
-    def parse_node(self, response, node):
+    def initConfig(self, spiderConfig):
+        """initing"""
 
-        item = XmlFeedItem()
-        item['title'] = [ t.encode('utf-8') for t in node.xpath(self.titleXpath).extract() ]
-        item['link'] =  [ l.encode('utf-8') for l in node.xpath(self.linkXpath).extract() ]
-        
-        item['img_url'] = []
-        item['description'] = []
+        self.rule = spiderConfig.get('rule', '')
+        self.titleXpath = spiderConfig.get('title_node', '')
+        self.descriptionXpath = spiderConfig.get('description_node', '')
+        self.descriptionLenght = int(spiderConfig.get('description_length', 1))
+        if self.descriptionLenght < 1:
+            self.descriptionLenght = 1
 
-        txtList = [ d.encode('utf-8') for d in node.xpath(self.descriptionXpath).extract() ]
-        for txt in txtList:
-            extendInfo = self.parse_description(txt)
-            item['img_url'].append(extendInfo['img_url'])
-            item['description'].append(extendInfo['description'])
+        self.linkXpath = spiderConfig.get('guid_node', '')
+        self.imgUrlXpath = spiderConfig.get('img_node', '')
+        self.imageNum = int(spiderConfig.get('img_num', 1))
+        if self.imageNum < 1:
+            self.imageNum = 1
 
-        item['pubDate'] = [ p.encode('utf-8') for p in node.xpath(self.pubDateXpath).extract() ]
-        item['guid'] = [ g.encode('utf-8') for g in node.xpath(self.guidXpath).extract() ]
-        yield item
+        self.videoUrlXpath = spiderConfig.get('video_node', '')
+        self.pubDateXpath = spiderConfig.get('public_time', '')
+        self.guidXpath = spiderConfig.get('guid_node', '')
 
+        # logging.info("--------guid_node---%s---------------" % self.guidXpath)
+        self.rule_id = spiderConfig.get('id', '')
+        self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
+        self.checkTxtXpath = spiderConfig.get('check_area_node', '//body')
+        self.last_md5 = spiderConfig.get('last_md5', '')
+        self.next_request_url = spiderConfig.get('next_request_url', '')
 
-    def parse_description(self,text):
+    def getNextListPageUrl(self, response):
 
-        extendItem = {'img_url':'','description':''}
-        if not text: return extendItem
+        logging.info("*********next_request_url : %s   *****" % self.next_request_url)
+        nextListPageURL = self.appendDomain(
+            self.safeParse(response, self.next_request_url),
+            response.url)
+        logging.info("*********nextListPageURL : %s   *****" % nextListPageURL)
 
-        imgUrls = self.img_pattern.search(text)
-        if imgUrls :
-            extendItem['img_url'] = imgUrls.group(1)
+        requestUrl = []
+        if nextListPageURL:
+            requestUrl.append(
+                Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
+        return requestUrl
 
-        txt = self.text_pattern.sub('',text)
+    def getDetailPageUrls(self, response):
+
+        detailUrls = [self.appendDomain(t.encode('utf-8'), response.url)
+                      for t in self.safeParse(response, self.rule, True, False)]
+
+        # 批量验证urls是否重复
+        logging.info("*********detailUrls : %s   *****" % detailUrls)
+        detailUrlsByFilter = self.distinctRequestUrls(detailUrls)
+        logging.info("*********detailUrlsByFilter : %s   *****" % detailUrlsByFilter)
+
+        if len(detailUrls) < 1 or len(detailUrlsByFilter) != len(detailUrls):
+            self.isDone = True
+
+        requestUrl = []
+        if detailUrlsByFilter:
+            for detailUrl in detailUrlsByFilter:
+                requestUrl.append(
+                    Request(detailUrl, headers={'Referer': REFERER}, callback=self.parse_detail_page, dont_filter=True))
+        return requestUrl
+
+    def appendDomain(self, url, domain=''):
+
+        parsed_uri = urlparse.urlparse(domain)
+        domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+        logging.info("*********apend before : %s   *****" % url)
+        if isinstance(url, (buffer, str)) and not self.url_domain_pattern.match(url):
+            url = urlparse.urljoin(domain, url)
+        return url
+
+    def distinctRequestUrls(self, urls):
+
+        if len(urls) < 1:
+            return []
+
+        uniqueCodeDict = {}
+        for url in urls:
+            uniqueCodeDict[toMd5(url)] = url
+
+        repeatUniqueCode = requstDistinct(uniqueCodeDict.keys())
+        for i, unique in enumerate(repeatUniqueCode):
+            del(uniqueCodeDict[unique])
+        return uniqueCodeDict.values()
+
+    def safeParse(self, response, xpathPattern, isMutile=False, isUtf8=True):
+        """safe about extract datas"""
+
+        if not xpathPattern:
+            return ([] if isMutile else "")
+
+        if isMutile:
+            if isUtf8:
+                return [(t.encode('utf-8') if t else t) for t in response.xpath(xpathPattern).extract()]
+            else:
+                return response.xpath(xpathPattern).extract()
+        else:
+            if isUtf8:
+                tmp = response.xpath(xpathPattern).extract_first()
+                return (tmp.encode('utf-8') if tmp else tmp)
+            else:
+                return response.xpath(xpathPattern).extract_first()
+
+    def parseDescriptionAndImages(self, response):
+
+        if not self.imgUrlXpath:
+            txt = self.safeParse(response, self.descriptionXpath)  # .encode('utf-8')
+            extendInfo = self.__parseDescriptionAndImg(txt)
+            description = extendInfo['description']
+            imgUrlList = extendInfo['img_url']
+        else:
+            txt = self.safeParse(response, self.descriptionXpath)  # .encode('utf-8')
+            description = self.__parseDescriptionOnly(txt)
+            imgUrlList = self.safeParse(response, self.imgUrlXpath, True)  # .encode('utf-8')
+
+        return {"img_url": imgUrlList, "description": description}
+
+    def __parseDescriptionOnly(self, text):
+        """当img_node存在是，调用此方法获取description"""
+
+        if not text:
+            return ""
+
+        txt = self.text_pattern.sub('', text)
+        if not txt:
+            return text
+
+        if self.descriptionLenght > 0:
+            txt = txt.decode('utf8')[0:self.descriptionLenght].encode('utf8')
+
+        return txt
+
+    def __parseDescriptionAndImg(self, text):
+        """当img_node不存在是，调用此方法获取description 和 img_url数据"""
+
+        extendItem = {'img_url': '', 'description': ''}
+        if not text:
+            return extendItem
+
+        imgUrls = self.img_pattern.findall(text)
+        if imgUrls:
+            extendItem['img_url'] = imgUrls[0:self.imageNum]
+
+        txt = self.text_pattern.sub('', text)
         if not txt:
             txt = text
 
-        extendItem['description'] = txt.decode('utf8')[0:50].encode('utf8')
-
+        if self.descriptionLenght > 0:
+            extendItem['description'] = txt.decode('utf8')[0:self.descriptionLenght].encode('utf8')
         return extendItem
