@@ -50,3 +50,15 @@ class XmlFeedItem(Item):
     public_time = Field()
     create_time = Field()
     pass
+
+
+class JokeItem(Item):
+    source_url = Field()
+    unique_code = Field()
+    rule_id = Field()
+    title = Field()
+    description = Field()
+    img_url = Field()
+    public_time = Field()
+    create_time = Field()
+    pass

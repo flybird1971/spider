@@ -69,7 +69,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     # 'mySpiders.pipelines.XmlFeedPipeline': 10,
-    'mySpiders.pipelines.CommonCrawlPipeline': 11,
+    # 'mySpiders.pipelines.CommonCrawlPipeline': 11,
     # 'mySpiders.pipelines.BsbdjPipeline' : 100,
     # 'mySpiders.pipelines.CSDNPipeline': 300,
     # 'mySpiders.pipelines.SomePipeline': 300,

@@ -4,10 +4,11 @@
 from scrapy.http import Request
 from mySpiders.spiders.MyBaseSpider import MyBaseSpider
 import mySpiders.utils.log as logging
-from mySpiders.items import XmlFeedItem
+from mySpiders.items import JokeItem
 
 from mySpiders.utils.http import getCrawlRequest, syncLastMd5
 from mySpiders.utils.hash import toMd5
+from config import REFERER
 
 
 class JokeSpider(MyBaseSpider):
@@ -15,6 +16,14 @@ class JokeSpider(MyBaseSpider):
     name = 'JokeSpider'
 
     start_urls = []
+
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'mySpiders.pipelines.JokePipeline': 1
+        }
+    }
+
+    next_request_url_prefix = 'http://www.budejie.com/text/'
 
     def start_requests(self):
 
@@ -44,7 +53,8 @@ class JokeSpider(MyBaseSpider):
             # 获取下一列表页url
             if not self.isDone:
                 for request in self.getNextListPageUrl(response):
-                    yield request
+                    request = self.appendDomain(request, self.next_request_url_prefix, False)
+                    yield Request(request, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True)
 
             # 同步md5码 & 同步last_id
             if self.isFirstListPage:
@@ -55,14 +65,14 @@ class JokeSpider(MyBaseSpider):
     def parse_detail_page(self, response):
 
         logging.info('--------------------parse detail page-----------')
-        item = XmlFeedItem()
+        item = JokeItem()
         item['title'] = self.safeParse(response, self.titleXpath)
 
         imageAndDescriptionInfos = self.parseDescriptionAndImages(response)
         item['img_url'] = imageAndDescriptionInfos['img_url']
         item['description'] = imageAndDescriptionInfos['description']
 
-        item['public_time'] = self.safeParse(response, self.pubDateXpath)
-        item['source_url'] = self.appendDomain(self.safeParse(response, self.guidXpath), response.url)
+        # item['public_time'] = self.safeParse(response, self.pubDateXpath)
+        item['source_url'] = response.url
         item['rule_id'] = self.rule_id
         yield item

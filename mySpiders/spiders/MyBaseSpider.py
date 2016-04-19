@@ -79,15 +79,17 @@ class MyBaseSpider(Spider):
     def getNextListPageUrl(self, response):
 
         logging.info("*********next_request_url : %s   *****" % self.next_request_url)
-        nextListPageURL = self.appendDomain(
-            self.safeParse(response, self.next_request_url),
-            response.url)
+        nextListPageURL = self.safeParse(response, self.next_request_url)
+        # nextListPageURL = self.appendDomain(
+        #     self.safeParse(response, self.next_request_url),
+        #     response.url)
         logging.info("*********nextListPageURL : %s   *****" % nextListPageURL)
 
         requestUrl = []
         if nextListPageURL:
-            requestUrl.append(
-                Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
+            requestUrl.append(nextListPageURL)
+            # requestUrl.append(
+            #     Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
         return requestUrl
 
     def getDetailPageUrls(self, response):
@@ -110,7 +112,10 @@ class MyBaseSpider(Spider):
                     Request(detailUrl, headers={'Referer': REFERER}, callback=self.parse_detail_page, dont_filter=True))
         return requestUrl
 
-    def appendDomain(self, url, domain=''):
+    def appendDomain(self, url, domain='', is_parse=True):
+
+        if not is_parse:
+            return domain + url
 
         parsed_uri = urlparse.urlparse(domain)
         domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
