@@ -23,8 +23,6 @@ class JokeSpider(MyBaseSpider):
         }
     }
 
-    next_request_url_prefix = 'http://www.budejie.com/text/'
-
     def start_requests(self):
 
         spiderConfig = getCrawlRequest()
@@ -53,8 +51,7 @@ class JokeSpider(MyBaseSpider):
             # 获取下一列表页url
             if not self.isDone:
                 for request in self.getNextListPageUrl(response):
-                    request = self.appendDomain(request, self.next_request_url_prefix, False)
-                    yield Request(request, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True)
+                    yield request
 
             # 同步md5码 & 同步last_id
             if self.isFirstListPage:
@@ -72,7 +69,7 @@ class JokeSpider(MyBaseSpider):
         item['img_url'] = imageAndDescriptionInfos['img_url']
         item['description'] = imageAndDescriptionInfos['description']
 
-        # item['public_time'] = self.safeParse(response, self.pubDateXpath)
+        item['public_time'] = self.safeParse(response, self.pubDateXpath)
         item['source_url'] = response.url
         item['rule_id'] = self.rule_id
         yield item

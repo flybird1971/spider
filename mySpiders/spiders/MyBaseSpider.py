@@ -21,6 +21,7 @@ class MyBaseSpider(Spider):
     # name = 'JokeSpider'
 
     # start_urls = []
+    requst_distinct_open = True
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
@@ -35,15 +36,17 @@ class MyBaseSpider(Spider):
         self.descriptionLenght = 0
         self.linkXpath = ''
         self.imgUrlXpath = ''
-        self.imageNum = 1
+        self.imageNum = 0
         self.videoUrlXpath = ''
         self.pubDateXpath = ''
         self.guidXpath = ''
         self.rule_id = ''
         self.checkTxtXpath = ''
+        self.max_deepth = 0
         self.is_remove_namespaces = False
         self.last_md5 = ''
         self.next_request_url = ''
+        self.next_page_url_prefix = ''
         Spider.__init__(self, *arg, **argdict)
         self.currentNode = None
         self.isDone = False
@@ -55,15 +58,15 @@ class MyBaseSpider(Spider):
         self.rule = spiderConfig.get('rule', '')
         self.titleXpath = spiderConfig.get('title_node', '')
         self.descriptionXpath = spiderConfig.get('description_node', '')
-        self.descriptionLenght = int(spiderConfig.get('description_length', 1))
+        self.descriptionLenght = int(spiderConfig.get('description_length', 1000000))
         if self.descriptionLenght < 1:
-            self.descriptionLenght = 1
+            self.descriptionLenght = 1000000
 
         self.linkXpath = spiderConfig.get('guid_node', '')
         self.imgUrlXpath = spiderConfig.get('img_node', '')
-        self.imageNum = int(spiderConfig.get('img_num', 1))
-        if self.imageNum < 1:
-            self.imageNum = 1
+        self.imageNum = int(spiderConfig.get('img_num', 0))
+        # if self.imageNum < 1:
+        #     self.imageNum = 1
 
         self.videoUrlXpath = spiderConfig.get('video_node', '')
         self.pubDateXpath = spiderConfig.get('public_time', '')
@@ -74,22 +77,35 @@ class MyBaseSpider(Spider):
         self.is_remove_namespaces = spiderConfig.get('is_remove_namespaces', 0)
         self.checkTxtXpath = spiderConfig.get('check_area_node', '//body')
         self.last_md5 = spiderConfig.get('last_md5', '')
+        self.max_deepth = int(spiderConfig.get('max_deepth', -1))
+        if self.max_deepth < 1:
+            self.max_deepth = 3000
+
         self.next_request_url = spiderConfig.get('next_request_url', '')
+        self.next_page_url_prefix = spiderConfig.get('next_page_url_prefix', '')
 
     def getNextListPageUrl(self, response):
 
-        logging.info("*********next_request_url : %s   *****" % self.next_request_url)
+        requestUrl = []
+        self.max_deepth -= 1
+        if self.max_deepth < 1:
+            logging.info("*********max_deepth : %s   *****" % self.max_deepth)
+            return requestUrl
+
+        # logging.info("*********next_request_url : %s   *****" % self.next_request_url)
         nextListPageURL = self.safeParse(response, self.next_request_url)
-        # nextListPageURL = self.appendDomain(
-        #     self.safeParse(response, self.next_request_url),
-        #     response.url)
+
+        # logging.info("*********next_page_url_prefix : %s   *****" % self.next_page_url_prefix)
+        if self.next_page_url_prefix:
+            nextListPageURL = self.appendDomain(nextListPageURL, self.next_page_url_prefix, False)
+        else:
+            nextListPageURL = self.appendDomain(nextListPageURL, response.url)
+
         logging.info("*********nextListPageURL : %s   *****" % nextListPageURL)
 
-        requestUrl = []
         if nextListPageURL:
-            requestUrl.append(nextListPageURL)
-            # requestUrl.append(
-            #     Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
+            requestUrl.append(
+                Request(nextListPageURL, headers={'Referer': REFERER}, callback=self.parse, dont_filter=True))
         return requestUrl
 
     def getDetailPageUrls(self, response):
@@ -128,6 +144,9 @@ class MyBaseSpider(Spider):
 
         if len(urls) < 1:
             return []
+
+        if not MyBaseSpider.requst_distinct_open:
+            return list(urls)
 
         uniqueCodeDict = {}
         for url in urls:
@@ -193,7 +212,7 @@ class MyBaseSpider(Spider):
             return extendItem
 
         imgUrls = self.img_pattern.findall(text)
-        if imgUrls:
+        if imgUrls and self.imageNum:
             extendItem['img_url'] = imgUrls[0:self.imageNum]
 
         txt = self.text_pattern.sub('', text)

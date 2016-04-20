@@ -180,7 +180,6 @@ class XmlFeedPipeline(object):
                 'public_time': public_time,
                 'create_time': create_time
             }
-            # self.db.insert(self.tableName, insertData)
 
         if uniqueCodeList:
             repeatUniqueCode = requstDistinct(uniqueCodeList)
