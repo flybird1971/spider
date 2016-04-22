@@ -8,6 +8,7 @@ from config import debug_on
 
 def info(infos, isPrint=False):
 
+    isPrint = True
     if not debug_on:
         return None
 

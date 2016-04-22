@@ -19,6 +19,12 @@ class XmlFeedSpider(Spider):
 
     start_urls = []
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'mySpiders.pipelines.XmlFeedPipeline': 1
+        }
+    }
+
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
 

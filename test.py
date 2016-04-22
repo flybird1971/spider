@@ -22,7 +22,7 @@ def test():
 # test()
 
 param = {'last_md5': toMd5(str(time.time())),
-         'id': '66'}
+         'id': '1'}
 # print syncLastMd5(param)
 # print getCrawlRequest()
 
@@ -44,8 +44,8 @@ param = [{'4bbce00021506aecf54ba5884a415b16': 'http://blog.csdn.net/hj7jay/artic
 # print requstDistinct(param.keys())
 # print syncCrawlInfos(param)
 
-t = SyncCrawlInfos()
-t.index()
+# t = SyncCrawlInfos()
+# t.index()
 
 # listd = [
 #     'aaaaaaaaaaaaa221e1e23',

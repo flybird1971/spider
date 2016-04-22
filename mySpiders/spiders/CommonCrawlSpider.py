@@ -82,6 +82,12 @@ class CommonCrawlSpider(Spider):
 
     start_urls = []
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'mySpiders.pipelines.CommonCrawlPipeline': 1
+        }
+    }
+
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
     url_domain_pattern = re.compile(r'$http://.*?', re.M | re.S)
