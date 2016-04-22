@@ -22,6 +22,7 @@ class HttpRequest(object):
         self.url = url
         self.type = requestType
         self.body = {}
+        self.timeout = None
 
     def setUrl(self, url):
         self.url = url
@@ -67,7 +68,11 @@ class HttpRequest(object):
             else:
                 req = urllib2.Request(self.url)
 
-            response = urllib2.urlopen(req)
+            if self.timeout:
+                response = urllib2.urlopen(req, timeout=self.timeout)
+            else:
+                response = urllib2.urlopen(req)
+
             response = response.read()
             return response
         except (urllib2.HTTPError, Exception), e:
@@ -80,6 +85,9 @@ class HttpRequest(object):
 
     def getDate(self):
         return datetime.datetime.now().strftime('%Y-%m-%d')
+
+    def setTimeout(self, timeout):
+        self.timeout = timeout
 
     def encrypt(self, encryptFields=[]):
         self.body['action'] = HttpRequest.action

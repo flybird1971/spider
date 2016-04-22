@@ -31,6 +31,9 @@ request_url = 'http://www.babel.com/api/get-spider-rules/get'
 # 同步last_md5 只是通用spider使用，rss不使用
 sync_last_md5_url = 'http://www.babel.com/api/get-spider-rules/sync-last-md5'
 
+# 同步爬取数据到线上数据库
+sync_crawl_infos_url = 'http://www.babel.com/api/sync-crawl-infos/index'
+
 # 数据库配置
 db_host = '127.0.0.1'
 db_user = 'root'
