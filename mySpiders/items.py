@@ -62,3 +62,15 @@ class JokeItem(Item):
     public_time = Field()
     create_time = Field()
     pass
+
+
+class ToutiaoItem(Item):
+
+    title = Field()
+    url = Field()
+    unique_code = Field()
+    share_num = Field()
+    rss_num = Field()
+    public_time = Field()
+    create_time = Field()
+    pass

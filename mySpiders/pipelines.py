@@ -42,6 +42,40 @@ class BsbdjPipeline(object):
         self.file.write(line.decode('unicode_escape'))
 
 
+class ToutiaoPipeline(object):
+
+    def __init__(self):
+
+        config = {'host': db_host, 'user': db_user, 'passwd': db_password}
+        database = db_name
+        self.db = Mysql(config, database)
+        self.tableName = 'bb_toutiao_sources'
+        self.item = None
+
+    def process_item(self, item, spider):
+
+        if not item:
+            logging.info('-----------------------list page repeat : %s' % item)
+            return True
+
+        public_time = int(time.time())
+        create_time = int(time.time())
+
+        for i in xrange(0, len(item['url'])):
+            insertData = {
+                'title': item['title'][i],
+                'url': item['url'][i],
+                'unique_code': toMd5(item['url'][i]),
+                'share_num': item['share_num'][i],
+                'rss_num': item['rss_num'][i],
+                'public_time': public_time,
+                'create_time': create_time
+            }
+            self.db.insert(self.tableName, insertData)
+
+        return True
+
+
 class JokePipeline(object):
 
     def __init__(self):
