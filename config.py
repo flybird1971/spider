@@ -10,6 +10,9 @@ MAIN_LOOP_SLEEP_TIME = 6
 # runspider 线程池
 SPIDER_MAX_POOL_NUM = 3
 
+# RSS 线程池
+RSS_MAX_POOL_NUM = 4
+
 # 运行多少次 runspider 后同步数据
 RUN_SYNC_INTERVAL_TIMES = 5
 

@@ -8,6 +8,7 @@ from mySpiders.utils.http import getCrawlRequestLength
 from scrapy.utils.project import get_project_settings
 from config import SPIDER_MAX_POOL_NUM
 
+
 class RunSpider(object):
 
     def __init__(self, size=None):
@@ -29,8 +30,6 @@ class RunSpider(object):
 
         self.runNum = 0
         self.process.start()
-        
-        
 
     def run(self):
         while True:
@@ -38,26 +37,24 @@ class RunSpider(object):
             logging.info("-----need deal request num-----%s " % num)
             if not num:
                 if self.runNum >= 1:
-                    logging.info("*************tt*************size:-%s--runNum:--%s--" % (self.size,self.runNum))  
+                    logging.info("*************tt*************size:-%s--runNum:--%s--" % (self.size, self.runNum))
                     self.runSpider()
                 break
             else:
                 self.initSpider()
                 if self.runNum >= self.size:
-                    logging.info("--size:-%s--runNum:--%s--" % (self.size,self.runNum))   
+                    logging.info("--size:-%s--runNum:--%s--" % (self.size, self.runNum))
                     self.runSpider()
                     break
-
 
 
 def main():
     try:
         runSpider = RunSpider()
         runSpider.run()
-        logging.info("---runSpider end-----------" )
+        logging.info("---runSpider end-----------")
     except Exception, e:
-        logging.info("---runSpider main function Exception : %s-----" % e )
+        logging.info("---runSpider main function Exception : %s-----" % e)
 
 if __name__ == '__main__':
     main()
-    

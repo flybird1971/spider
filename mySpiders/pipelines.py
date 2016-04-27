@@ -221,3 +221,40 @@ class XmlFeedPipeline(object):
                 del(insertData[unique])
 
         return insertData
+
+
+
+
+#  专供rss手动实现爬虫使用
+class RssPipeline(object):
+
+    def __init__(self):
+
+        config = {'host': db_host, 'user': db_user, 'passwd': db_password}
+        database = db_name
+        self.db = Mysql(config, database)
+        self.tableName = db_table_name
+        self.item = None
+
+    def process_item(self, item):
+
+        if not item:
+            logging.info('------------page not crawl data ')
+            return True
+
+        self.item = item
+        insertDataList = self.filterAndPackageDgrate()
+        for index in insertDataList:
+            self.db.insert(self.tableName, insertDataList[index])
+
+        return True
+
+    def filterAndPackageDgrate(self):
+
+        uniqueCodeList = self.item.keys()
+        repeatUniqueCode = requstDistinct(uniqueCodeList)
+        logging.info('------------distinct before : %s ' % uniqueCodeList)
+        for i, unique in enumerate(repeatUniqueCode):
+            del(self.item[unique])
+        logging.info('------------distinct after : %s ' % self.item.keys())
+        return self.item

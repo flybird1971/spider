@@ -1,6 +1,6 @@
 # coding:utf8
 import MySQLdb as mdb
-import logging
+import mySpiders.utils.log as logging
 # import sys
 # sys.path.append("../")
 __author__ = 'flybird1971'

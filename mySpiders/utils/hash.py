@@ -3,12 +3,14 @@
 
 import md5
 import base64
+from iterable2string import Iterable2String
 
 
 def toMd5(data):
 
     if isinstance(data, (list, dict, tuple, set)):
-        string = " ".join(data)
+        # string = " ".join(data)
+        string = Iterable2String.convert(data)
     else:
         string = data
     string = string.encode('utf-8')
