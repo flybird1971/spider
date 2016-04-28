@@ -7,6 +7,7 @@ import mySpiders.utils.log as logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.spiders.BaseFeed import BaseFeed
 from mySpiders.utils.http import syncLastMd5
+from config import OPEN_MD5_CHECK
 # from mySpiders.utils.CollectionHelper import CollectionHelper
 
 
@@ -20,7 +21,7 @@ class CommonFeedRss(BaseFeed):
         # md5校验
         last_md5 = toMd5(d.entries)
         logging.info("*********last_md5 : %s   self.last_md5 : %s*****" % (last_md5, self.last_md5))
-        if self.last_md5 == last_md5:
+        if OPEN_MD5_CHECK and self.last_md5 == last_md5:
             return True
 
         self.parse(d)  # 解析rss

@@ -12,7 +12,7 @@ import mySpiders.utils.log as logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.mysql import Mysql
 from mySpiders.utils.http import requstDistinct
-from config import db_host, db_user, db_password, db_name, db_table_name
+from config import db_host, db_user, db_password, db_name, db_table_name,OPEN_REDIS_DISTINCT
 
 
 class SpidersPipeline(object):
@@ -215,7 +215,7 @@ class XmlFeedPipeline(object):
                 'create_time': create_time
             }
 
-        if uniqueCodeList:
+        if uniqueCodeList and OPEN_REDIS_DISTINCT:
             repeatUniqueCode = requstDistinct(uniqueCodeList)
             for i, unique in enumerate(repeatUniqueCode):
                 del(insertData[unique])
@@ -250,6 +250,9 @@ class RssPipeline(object):
         return True
 
     def filterAndPackageDgrate(self):
+
+        if not OPEN_REDIS_DISTINCT:
+            return self.item
 
         uniqueCodeList = self.item.keys()
         repeatUniqueCode = requstDistinct(uniqueCodeList)

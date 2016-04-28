@@ -74,17 +74,13 @@ class BaseFeed(object):
         if imgUrls:
             extendItem['img_url'] = imgUrls[0:self.imageNum]
 
-        if self.descriptionLenght > 0:
-            extendItem['content'] = text.decode('utf8')[0:self.descriptionLenght].encode('utf8')
-        else:
-            extendItem['content'] = text
-
+        extendItem['content'] = text
         return extendItem
 
     def parseDescription(self, data):
         """当img_node存在是，调用此方法获取description"""
 
-        description = data.get('description', data.get('summary', ''))
+        description = data.get('description', data.get('summary', data.get('content','')))
 
         if not description:
             return ""
