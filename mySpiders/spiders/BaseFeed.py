@@ -16,7 +16,7 @@ class BaseFeed(object):
 
     img_pattern = re.compile(r'<\s*?img.*?src\s*?=\s*?[\'"](.*?)[\'"].*?\>', re.M | re.S)
     text_pattern = re.compile(r'<\s*?(.*?)\>|[\s\n]', re.M | re.S)
-    
+
     def __init__(self, *arg, **argdict):
         """ 初始化对象属性 """
         self.pipeline = RssPipeline()
@@ -80,3 +80,19 @@ class BaseFeed(object):
             extendItem['content'] = text
 
         return extendItem
+
+    def parseDescription(self, data):
+        """当img_node存在是，调用此方法获取description"""
+
+        description = data.get('description', data.get('summary', ''))
+
+        if not description:
+            return ""
+
+        txt = self.text_pattern.sub('', description)
+        if not txt:
+            return description
+
+        txt = txt.decode('utf8')[0:1000].encode('utf8')
+
+        return txt
