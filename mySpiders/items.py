@@ -52,17 +52,30 @@ class XmlFeedItem(Item):
     pass
 
 
+class CrawlItem(Item):
+    source_url = Field()
+    unique_code = Field()
+    rule_id = Field()
+    title = Field()
+    description = Field()
+    source_score = Field()
+    content = Field()
+    img_url = Field()
+    public_time = Field()
+    create_time = Field()
+    pass
+
 class JokeItem(Item):
     source_url = Field()
     unique_code = Field()
     rule_id = Field()
     title = Field()
     description = Field()
+    content = Field()
     img_url = Field()
     public_time = Field()
     create_time = Field()
     pass
-
 
 class ToutiaoItem(Item):
 

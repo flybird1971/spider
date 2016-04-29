@@ -76,46 +76,6 @@ class ToutiaoPipeline(object):
         return True
 
 
-class JokePipeline(object):
-
-    def __init__(self):
-
-        config = {'host': db_host, 'user': db_user, 'passwd': db_password}
-        database = db_name
-        self.db = Mysql(config, database)
-        self.tableName = db_table_name
-        self.item = None
-
-    def process_item(self, item, spider):
-
-        if not item:
-            logging.info('-----------------------list page repeat : %s' % item)
-            return True
-
-        rule_id = item['rule_id']
-        public_time = int(time.time())
-        create_time = int(time.time())
-
-        img_url = json.dumps(item['img_url'])
-        description = item['description']
-        if not description:
-            return True
-
-        title = item['title'].decode('utf8')[0:255].encode('utf8')
-        insertData = {
-            'source_url': item['source_url'],
-            'unique_code': toMd5(item['source_url']),
-            'rule_id': rule_id,
-            'title': title,
-            'description': description,
-            'img_url': img_url,
-            'public_time': public_time,
-            'create_time': create_time
-        }
-        self.db.insert(self.tableName, insertData)
-        return True
-
-
 class CommonCrawlPipeline(object):
 
     def __init__(self):
@@ -129,7 +89,7 @@ class CommonCrawlPipeline(object):
     def process_item(self, item, spider):
 
         if not item:
-            logging.info('-----------------------list page repeat : %s' % item)
+            logging.info('--------item is empty : %s' % item)
             return True
 
         rule_id = item['rule_id']
@@ -261,3 +221,46 @@ class RssPipeline(object):
             del(self.item[unique])
         logging.info('------------distinct after : %s ' % self.item.keys())
         return self.item
+
+
+# 专供非rss 爬虫使用
+class CrawlPipeline(object):
+
+    def __init__(self):
+
+        config = {'host': db_host, 'user': db_user, 'passwd': db_password}
+        database = db_name
+        self.db = Mysql(config, database)
+        self.tableName = db_table_name
+        self.item = None
+
+    def process_item(self, item, spider):
+
+        if not item:
+            logging.info('--------item is empty : %s' % item)
+            return True
+
+        create_time = int(time.time())
+        img_url = json.dumps(item['img_url'])
+        if (not item['description']) and (not item['content']):
+            return True
+
+        title = item['title'].decode('utf8')[0:255].encode('utf8')
+        insertData = {
+            'source_url': item['source_url'],
+            'unique_code': toMd5(item['source_url']),
+            'rule_id': item['rule_id'],
+            'title': title,
+            'description': item['description'],
+            'content': item['content'],
+            'img_url': img_url,
+            'is_sync' : '0',
+            'public_time': item['public_time'],
+            'create_time': create_time
+        }
+        insertOk = self.db.insert(self.tableName, insertData)
+        if ( not insertOk )and spider.is_duplicate:
+            self.db.update(self.tableName, insertData, "unique_code = '" + insertData['unique_code'] + "'")
+            logging.info('========update.unique_code : %s' % insertData['unique_code'])
+
+        return True
