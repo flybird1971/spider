@@ -7,7 +7,7 @@ from scrapy.spiders import Spider
 import mySpiders.utils.log as logging
 from mySpiders.items import XmlFeedItem
 
-from mySpiders.utils.http import getCrawlRequest, syncLastMd5, requstDistinct
+from mySpiders.utils.http import getCrawlNoRssRequest, syncLastMd5, requstDistinct
 from mySpiders.utils.hash import toMd5
 from config import REFERER
 
@@ -144,7 +144,7 @@ class CommonCrawlSpider(Spider):
 
     def start_requests(self):
 
-        spiderConfig = getCrawlRequest()
+        spiderConfig = getCrawlNoRssRequest()
         if not spiderConfig:
             return []
 

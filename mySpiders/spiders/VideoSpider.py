@@ -6,7 +6,7 @@ from mySpiders.spiders.MyBaseSpider import MyBaseSpider
 import mySpiders.utils.log as logging
 from mySpiders.items import XmlFeedItem
 
-from mySpiders.utils.http import getCrawlRequest, syncLastMd5
+from mySpiders.utils.http import getCrawlNoRssRequest, syncLastMd5
 from mySpiders.utils.hash import toMd5
 
 
@@ -18,7 +18,7 @@ class VideoSpider(MyBaseSpider):
 
     def start_requests(self):
 
-        spiderConfig = getCrawlRequest()
+        spiderConfig = getCrawlNoRssRequest()
         if not spiderConfig:
             return []
 

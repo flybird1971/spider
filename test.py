@@ -4,7 +4,10 @@
 import time
 from scrapy.crawler import CrawlerProcess
 from mySpiders.spiders.csdn_spider import CSDNSpider
-from mySpiders.utils.http import getCrawlRequest, requstDistinct, syncLastMd5, syncCrawlInfos
+from mySpiders.utils.http import (getCrawlRssRequestLength,getCrawlRssRequest,
+    getCrawlNoRssRequestLength,getCrawlNoRssRequest, requstDistinct, syncLastMd5, syncCrawlInfos)
+
+
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.syncCrawlInfos import SyncCrawlInfos
 
@@ -24,7 +27,10 @@ def test():
 param = {'last_md5': toMd5(str(time.time())),
          'id': '1'}
 # print syncLastMd5(param)
-# print getCrawlRequest()
+# print getCrawlRssRequestLength()
+# print getCrawlRssRequest()
+print getCrawlNoRssRequestLength()
+print getCrawlNoRssRequest()
 
 param = [{'4bbce00021506aecf54ba5884a415b16': 'http://blog.csdn.net/hj7jay/article/details/51148995'},
          {'b158d4b6473444ebfbaa2969c99c9e13': 'http://blog.csdn.net/hj7jay/article/details/51149155'},

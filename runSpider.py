@@ -4,7 +4,7 @@
 import mySpiders.utils.log as logging
 from scrapy.crawler import CrawlerProcess
 from mySpiders.spiders.CommonXmlFeed import XmlFeedSpider
-from mySpiders.utils.http import getCrawlRequestLength
+from mySpiders.utils.http import getCrawlNoRssRequestLength
 from scrapy.utils.project import get_project_settings
 from config import SPIDER_MAX_POOL_NUM
 
@@ -33,7 +33,7 @@ class RunSpider(object):
 
     def run(self):
         while True:
-            num = getCrawlRequestLength()
+            num = getCrawlNoRssRequestLength()
             logging.info("-----need deal request num-----%s " % num)
             if not num:
                 if self.runNum >= 1:

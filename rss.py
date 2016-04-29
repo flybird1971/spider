@@ -9,7 +9,7 @@ from config import MAIN_LOOP_SLEEP_TIME, RSS_MAX_POOL_NUM, RUN_SYNC_INTERVAL_TIM
 
 from mySpiders.sql.syncCrawlInfos import SyncCrawlInfos
 from mySpiders.spiders.CommonFeedRss import CommonFeedRss
-from mySpiders.utils.http import getCrawlRequest
+from mySpiders.utils.http import getCrawlRssRequest
 import mySpiders.utils.log as logging
 
 import sys
@@ -24,7 +24,6 @@ class RssPool(object):
     def __init__(self):
 
         self.pool = Pool(RSS_MAX_POOL_NUM)
-        # self.spider = CommonFeedRss()
         self.start = False
         self.times = 0
         self.beginTime = int(time.time())
@@ -58,7 +57,7 @@ class RssPool(object):
 
     def addRssSpider(self):
 
-        configList = getCrawlRequest()
+        configList = getCrawlRssRequest()
         if not configList:
             self.start = True
             return True

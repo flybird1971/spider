@@ -64,8 +64,10 @@ class HttpRequest(object):
         try:
             if self.requestType == 'post':
                 self.body = urllib.urlencode(self.body)
+                print self.url,self.body
                 req = urllib2.Request(url=self.url, data=self.body)
             else:
+                print self.url
                 req = urllib2.Request(self.url)
 
             if self.timeout:

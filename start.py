@@ -5,7 +5,7 @@ import os
 import time
 import mySpiders.utils.log as logging
 from config import MAIN_LOOP_SLEEP_TIME, RUN_SYNC_INTERVAL_TIMES, RUN_SYNC_INTERVAL_TIME
-from mySpiders.utils.http import getCrawlRequestLength
+from mySpiders.utils.http import getCrawlNoRssRequestLength
 from mySpiders.sql.syncCrawlInfos import SyncCrawlInfos
 
 
@@ -15,7 +15,7 @@ def startScript():
     while True:
         try:
             times += 1
-            num = getCrawlRequestLength()
+            num = getCrawlNoRssRequestLength()
             logging.info("**********need deal request num :%s************" % num, True)
 
             if not num:

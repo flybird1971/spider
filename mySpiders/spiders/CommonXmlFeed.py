@@ -4,7 +4,7 @@ import mySpiders.utils.log as logging
 from scrapy.http import Request
 from scrapy.spiders import Spider
 from mySpiders.items import XmlFeedItem
-from mySpiders.utils.http import getCrawlRequest
+from mySpiders.utils.http import getCrawlNoRssRequest
 from config import MAX_START_URLS_NUM
 from mySpiders.utils.hash import toMd5
 
@@ -73,7 +73,7 @@ class XmlFeedSpider(Spider):
     def start_requests(self):
         requestUrl = []
         for i in xrange(0, MAX_START_URLS_NUM):
-            spiderConfig = getCrawlRequest()
+            spiderConfig = getCrawlNoRssRequest()
             if not spiderConfig:
                 break
 
@@ -114,7 +114,7 @@ class XmlFeedSpider(Spider):
             yield item
 
             # update md5 to mysql
-            spiderConfig = getCrawlRequest({'last_md5': last_md5, 'id': self.rule_id})
+            spiderConfig = getCrawlNoRssRequest({'last_md5': last_md5, 'id': self.rule_id})
             if spiderConfig:
                 yield Request(spiderConfig.get('start_urls', '')[0],
                               headers={'Referer': 'http://www.google.com'},

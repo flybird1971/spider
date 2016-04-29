@@ -44,11 +44,17 @@ request_domain = 'http://www.tobabel.cn'
 # 判断url是否重复
 requst_distinct_url = request_domain + '/api/cluster-requst-distinct/index'
 
-# 判断队列长度
-requst_length_url = request_domain + '/api/get-spider-rules/get-length'
+# 获取Rss队列长度
+requst_rss_length_url = request_domain + '/api/get-spider-rules/get-rss-length'
 
-# 获取爬虫规则
-request_url = request_domain + '/api/get-spider-rules/get'
+# 获取RSS爬虫规则
+request_rss_url = request_domain + '/api/get-spider-rules/get-rss'
+
+# 获取非Rss队列长度
+requst_norss_length_url = request_domain + '/api/get-spider-rules/get-no-rss-length'
+
+# 获取非Rss爬虫规则
+request_norss_url = request_domain + '/api/get-spider-rules/get-no-rss'
 
 # 同步last_md5 只是通用spider使用，rss不使用
 sync_last_md5_url = request_domain + '/api/get-spider-rules/sync-last-md5'
