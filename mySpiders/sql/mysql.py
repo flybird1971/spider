@@ -168,17 +168,29 @@ class Mysql(BaseMysql):
         try:
             self.__initConnect()
             with self.connect:
-                updateStr = ''
-                for key in updateDict:
-                    updateStr += str(key) + "= '" + str(updateDict[key]) + "',"
-                updateStr = updateStr.strip(',')
+                updateSql = "update " + tableName + " set "
+                for field in updateDict.keys():
+                    updateSql += " `"+ field +"` = %s,"
+                updateSql = updateSql.strip(',')
 
                 if not where:
                     where = "1=1"
-
-                updateSql = "update " + tableName + " set " + updateStr + ' where ' + where
-                self.cur.execute(updateSql)
+                updateSql += " where " + where
+                self.cur.execute(updateSql, updateDict.values())
                 return self.cur.rowcount
+
+                # updateStr = ''
+                # for key in updateDict:
+                #     updateStr += str(key) + "= '" + str(updateDict[key]) + "',"
+                # updateStr = updateStr.strip(',')
+                # print updateStr
+
+                # if not where:
+                #     where = "1=1"
+                #
+                # updateSql = "update " + tableName + " set " + updateStr + ' where ' + where
+                # self.cur.execute(updateSql)
+                # return self.cur.rowcount
             self.connect.commit()  # 事务自动开启提交
         except mdb.Error, e:
             self.connect.rollback()
