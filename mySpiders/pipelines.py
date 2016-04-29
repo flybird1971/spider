@@ -254,6 +254,7 @@ class CrawlPipeline(object):
             'description': item['description'],
             'content': item['content'],
             'img_url': img_url,
+            'source_score' : item['source_score'],
             'is_sync' : '0',
             'public_time': item['public_time'],
             'create_time': create_time
