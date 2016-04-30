@@ -10,6 +10,8 @@ OPEN_MD5_CHECK = True
 # 是否开启redis去重
 OPEN_REDIS_DISTINCT = True
 
+# 超时设置 单位秒
+REQUEST_TIME_OUT = 10
 
 # 主循环 休眠时间
 MAIN_LOOP_SLEEP_TIME = 15

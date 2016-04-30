@@ -7,7 +7,9 @@ import mySpiders.utils.log as logging
 from mySpiders.utils.hash import toMd5
 from mySpiders.spiders.BaseFeed import BaseFeed
 from mySpiders.utils.http import syncLastMd5
-from config import OPEN_MD5_CHECK
+from config import OPEN_MD5_CHECK,REQUEST_TIME_OUT
+import socket
+socket.setdefaulttimeout(REQUEST_TIME_OUT)
 # from mySpiders.utils.CollectionHelper import CollectionHelper
 
 
