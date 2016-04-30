@@ -200,12 +200,12 @@ class Mysql(BaseMysql):
             self.close()
         return None
 
-    def updateBySql(self, updateSql):
-        """更新数据"""
+    def executeSql(self, sql):
+        """执行原生sql语句"""
         try:
             self.__initConnect()
             with self.connect:
-                self.cur.execute(updateSql)
+                self.cur.execute(sql)
                 return self.cur.rowcount
             self.connect.commit()  # 事务自动开启提交
         except mdb.Error, e:

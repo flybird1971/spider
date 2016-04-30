@@ -43,7 +43,7 @@ class SyncCrawlInfos(object):
             else:
                 print "sync fail %s " % uniqueCode
                 updateSql = "update "+self.tableName+" set `sync_times` = `sync_times`+1 where `unique_code` = '"+uniqueCode+"' "
-            self.db.updateBySql(updateSql)
+            self.db.executeSql(updateSql)
 
 
         logging.info('--------------sync records cast time : %s ' % (int(time.time()) - beginTime)  )
