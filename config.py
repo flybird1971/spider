@@ -27,7 +27,7 @@ RUN_SYNC_INTERVAL_TIMES = 50
 RUN_SYNC_INTERVAL_TIME = 600
 
 # 一次同步多少条数据
-SYNC_RECORDS_NUMS = 10
+SYNC_RECORDS_NUMS = 500
 
 # referer
 REFERER = 'http://www.google.com'
