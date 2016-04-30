@@ -200,6 +200,22 @@ class Mysql(BaseMysql):
             self.close()
         return None
 
+    def updateBySql(self, updateSql):
+        """更新数据"""
+        try:
+            self.__initConnect()
+            with self.connect:
+                self.cur.execute(updateSql)
+                return self.cur.rowcount
+            self.connect.commit()  # 事务自动开启提交
+        except mdb.Error, e:
+            self.connect.rollback()
+            print "has error %d : %s " % (e.args[0], e.args[1])
+            return None
+        finally:
+            self.close()
+        return None
+
     def deleteOne(self, tableName, where):
         """删除数据"""
         try:
