@@ -10,6 +10,7 @@ import base64
 import md5
 import datetime
 import json
+import zlib
 from config import ENCRYPT_MD5_KEY
 
 
@@ -23,6 +24,7 @@ class HttpRequest(object):
         self.type = requestType
         self.body = {}
         self.timeout = None
+        self.gzipParams = []
 
     def setUrl(self, url):
         self.url = url
@@ -60,11 +62,26 @@ class HttpRequest(object):
         self.url = self.url + '?' + urllib.urlencode(self.body)
         return self.send()
 
+    def gzipCompress(self):
+        """进行gzip压缩"""
+        fieldList = self.body.keys()
+        for param in self.gzipParams:
+            if param in fieldList:
+                self.body[param] = zlib.compress(self.body[param])
+        return self
+
+    def setGzipParams(self,gzipParams):
+        """设置要进行gzip压缩的字段"""
+        self.gzipParams = gzipParams
+        return self
+
     def send(self):
         try:
+            self.gzipCompress()
             if self.requestType == 'post':
                 self.body = urllib.urlencode(self.body)
                 req = urllib2.Request(url=self.url, data=self.body)
+                # req.add_header('Accept-Encoding', "gzip");
             else:
                 req = urllib2.Request(self.url)
 

@@ -3,34 +3,22 @@
 
 import time
 from scrapy.crawler import CrawlerProcess
-from mySpiders.spiders.csdn_spider import CSDNSpider
 from mySpiders.utils.http import (getCrawlRssRequestLength,getCrawlRssRequest,
     getCrawlNoRssRequestLength,getCrawlNoRssRequest, requstDistinct, syncLastMd5, syncCrawlInfos)
 
+from mySpiders.utils.CollectionHelper import CollectionHelper
 
 from mySpiders.utils.hash import toMd5
 from mySpiders.sql.syncCrawlInfos import SyncCrawlInfos
 
-
-def test():
-    process = CrawlerProcess()
-    process.crawl(CSDNSpider)
-    process.crawl(CSDNSpider)
-    process.start()  # the script will block here until all crawling jobs are finished
-
-    print "=============================="
-    time.sleep(1)
-
-
-# test()
 
 param = {'last_md5': toMd5(str(time.time())),
          'id': '1'}
 # print syncLastMd5(param)
 # print getCrawlRssRequestLength()
 # print getCrawlRssRequest()
-print getCrawlNoRssRequestLength()
-print getCrawlNoRssRequest()
+# print getCrawlNoRssRequestLength()
+# print getCrawlNoRssRequest()
 
 param = [{'4bbce00021506aecf54ba5884a415b16': 'http://blog.csdn.net/hj7jay/article/details/51148995'},
          {'b158d4b6473444ebfbaa2969c99c9e13': 'http://blog.csdn.net/hj7jay/article/details/51149155'},
@@ -49,6 +37,8 @@ param = [{'4bbce00021506aecf54ba5884a415b16': 'http://blog.csdn.net/hj7jay/artic
          ]
 # print requstDistinct(param.keys())
 # print syncCrawlInfos(param)
+sync = SyncCrawlInfos()
+sync.index()
 
 # t = SyncCrawlInfos()
 # t.index()
