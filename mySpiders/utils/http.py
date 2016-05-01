@@ -124,7 +124,8 @@ def syncCrawlInfos(dataList):
         sqlList = json.dumps(dataList)
         body = {'sql': sqlList, 'checksum': toMd5(sqlList)}
         encryptFields = []
-        response = http.setUrl(url).setBody(body).setGzipParams(['sql']).encrypt(encryptFields).post()
+        headerDict = {'Content-Encoding':'gzip','Accept-Encoding':"gzip"}
+        response = http.setUrl(url).setBody(body).setHeader(headerDict).encrypt(encryptFields).post()
         res = json.loads(response)['data']
         if not res:
             return []

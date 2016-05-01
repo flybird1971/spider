@@ -11,6 +11,7 @@ import md5
 import datetime
 import json
 import zlib
+import StringIO, gzip
 from config import ENCRYPT_MD5_KEY
 
 
@@ -24,7 +25,7 @@ class HttpRequest(object):
         self.type = requestType
         self.body = {}
         self.timeout = None
-        self.gzipParams = []
+        self.headerDict = {}
 
     def setUrl(self, url):
         self.url = url
@@ -62,28 +63,25 @@ class HttpRequest(object):
         self.url = self.url + '?' + urllib.urlencode(self.body)
         return self.send()
 
-    def gzipCompress(self):
-        """进行gzip压缩"""
-        fieldList = self.body.keys()
-        for param in self.gzipParams:
-            if param in fieldList:
-                self.body[param] = zlib.compress(self.body[param])
+    def setHeader(self,headerDict):
+        """设置请求头"""
+        self.headerDict = headerDict
         return self
 
-    def setGzipParams(self,gzipParams):
-        """设置要进行gzip压缩的字段"""
-        self.gzipParams = gzipParams
+    def appendHeader(self,req):
+        for field in self.headerDict:
+            req.add_header(field,self.headerDict[field])
         return self
 
     def send(self):
         try:
-            self.gzipCompress()
             if self.requestType == 'post':
                 self.body = urllib.urlencode(self.body)
                 req = urllib2.Request(url=self.url, data=self.body)
-                # req.add_header('Accept-Encoding', "gzip");
             else:
                 req = urllib2.Request(self.url)
+
+            self.appendHeader(req)
 
             if self.timeout:
                 response = urllib2.urlopen(req, timeout=self.timeout)
@@ -91,6 +89,11 @@ class HttpRequest(object):
                 response = urllib2.urlopen(req)
 
             response = response.read()
+            if self.headerDict.get('Accept-Encoding',None) == 'gzip':
+                compressedstream = StringIO.StringIO(response)
+                gziper = gzip.GzipFile(fileobj=compressedstream)
+                response = gziper.read()   # 读取解压缩后数据
+
             return response
         except (urllib2.HTTPError, Exception), e:
             print e
