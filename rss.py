@@ -34,7 +34,7 @@ class RssPool(object):
 
             if (not self.start) and (not self.pool.full()):
                 self.addRssSpider()
-                self.syncDagrame()
+                # self.syncDagrame()
                 continue
 
             self.start = False
