@@ -32,7 +32,7 @@ def startScript():
             #     beginTime = int(time.time())
 
         except Exception, e:
-            logging.info("--------------%------------" % e)
+            logging.info("--------------%s------------" % e)
 
 
 if __name__ == '__main__':
