@@ -71,3 +71,5 @@ db_user = 'root'
 db_password = '123456'
 db_name = 'babel'
 db_table_name = 'bb_crawl_infos'
+
+cert_path = "/mySpiders/keyPath/rsa_public_key.pem"
