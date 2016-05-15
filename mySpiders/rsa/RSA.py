@@ -49,14 +49,28 @@ class MyRsa(object):
 
         return self.publicKey
 
-    def encrypt(self, plaintext):
+    def privateEncrypt(self, plaintext):
 
         m = self.readPrivateKey()
         random_generator = Random.new().read
         ciphertuple = m.encrypt(plaintext, random_generator)
         return base64.b64encode(ciphertuple[0])
 
-    def decrypt(self, ciphertext):
+    def publicEncrypt(self, plaintext):
+
+        m = self.readPublicKey()
+        random_generator = Random.new().read
+        ciphertuple = m.encrypt(plaintext, random_generator)
+        return base64.b64encode(ciphertuple[0])
+
+    def privateDecrypt(self, ciphertext):
+
+        m = self.readPrivateKey()
+        ciphertext = base64.b64decode(ciphertext)
+        plaintext = m.decrypt(ciphertext)
+        return plaintext
+
+    def publicDecrypt(self, ciphertext):
 
         m = self.readPublicKey()
         ciphertext = base64.b64decode(ciphertext)
@@ -77,6 +91,13 @@ class MyRsa(object):
 
 rsa = MyRsa('private_key.pem', 'public_key.pem')
 # rsa.generateKeyPairs()
-ciphertext = rsa.encrypt('hello222')
+
+# denstr = "qF25Vm3gYHf8nziviXVOZ/ddMX+gWdT1cqzBr8rJvtoR7M8v5exJz0vf7ex/7vENAwsWw5sF1nl1nrIxnpF0S89brIQXM8N8lR/oTcLYqNUGniaksG+fJJV7eK6UnSnxPWmt364OkP1DTf8VnnEgToluif+GkzOg3fA2uhJtCf0="
+
+# print  rsa.privateDecrypt(denstr)
+
+ciphertext = rsa.publicEncrypt('hello222')
 print ciphertext
-print rsa.decrypt(ciphertext)
+print rsa.privateDecrypt(ciphertext)
+
+print base64.b64encode('heelo')
