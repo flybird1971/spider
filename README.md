@@ -4,27 +4,28 @@
 ## 后台配置截图如下
 
 [![配置列表](http://img.tobabel.cn/2016/06/08/spider_list.png)](http://img.tobabel.cn/2016/06/08/spider_list.png)
+
 [![配置详情](http://img.tobabel.cn/2016/06/08/spider_detail.png)](http://img.tobabel.cn/2016/06/08/spider_detail.png)
 
 
 ## 配置文件 config.py
-  debug_on          是否开启log
-  OPEN_MD5_CHECK    是否开启md5校验
-  REQUEST_TIME_OUT  http请求超时设置 
-  MAIN_LOOP_SLEEP_TIME    主循环休眠时间
-  SPIDER_MAX_POOL_NUM     runspider线程池大小  
-  RSS_MAX_POOL_NUM        RSS线程池大小
-  RUN_SYNC_INTERVAL_TIME  多久同步一次数据到线上，单位秒
-  SYNC_RECORDS_NUMS       一次同步多少条数据
-  REFERER                 referer
-  ENCRYPT_MD5_KEY         http通信密钥
+-  debug_on                是否开启log
+-  OPEN_MD5_CHECK          是否开启md5校验
+-  REQUEST_TIME_OUT        http请求超时设置 
+-  MAIN_LOOP_SLEEP_TIME    主循环休眠时间
+-  SPIDER_MAX_POOL_NUM     runspider线程池大小  
+-  RSS_MAX_POOL_NUM        RSS线程池大小
+-  RUN_SYNC_INTERVAL_TIME  多久同步一次数据到线上，单位秒
+-  SYNC_RECORDS_NUMS       一次同步多少条数据
+-  REFERER                 referer
+-  ENCRYPT_MD5_KEY         http通信密钥
   
 ### 数据库配置
-  db_host                 host,eg:'127.0.0.1'
-  db_user                 数据库用户名 eg : 'root'
-  db_password             数据库密码
-  db_name                 数据库名称
-  db_table_name           临时存储抓取数据表 
+ -  db_host                 host,eg:'127.0.0.1'
+ -  db_user                 数据库用户名 eg : 'root'
+ -  db_password             数据库密码
+ -  db_name                 数据库名称
+ -  db_table_name           临时存储抓取数据表 
 
 
 
